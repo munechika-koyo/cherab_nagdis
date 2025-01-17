@@ -21,7 +21,7 @@ python = "*"
 hatchling = "*"
 cython = "*"
 numpy = "*"
-raysect = "*"   # alternative for cherab
+# cherab = "*"  # cherab has not yet available in conda-forge
 
 [dependencies]
 scipy = "*"
@@ -37,8 +37,8 @@ ffmpeg = "*"
 
 [pypi-dependencies]
 hatch-cython = ">=0.6.0rc0"
-cherab = "*"
-calcam = "*"
+cherab = "*"  # cherab has not yet available in conda-forge
+calcam = "*"  # calcam has not yet available in conda-forge
 wvfreader = "*"
 cherab-nagdis = { path = ".", editable = true }
 
