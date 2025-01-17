@@ -1,0 +1,73 @@
+[project]
+name = "cherab-nagdis"
+version = "0.1.0"
+description = "Cherab for NAGDIS-II"
+authors = ["munechika-koyo <munechika.koyo@torus.nr.ttitech.ac.jp>"]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64", "osx-arm64", "osx-64"]
+
+[tasks.clean]
+cmd = "find src/ -type f \\( -name '*.c' -o -name '*.so' -o -name '*.dylib' -o -name '*.html' \\) -delete"
+description = "Remove build artifacts and temporary files (e.g. *.c, *.so, *.dylib, *.html)"
+[tasks.dataset]
+cmd = "python -c 'from experiment.dataset import create_dataset; create_dataset()'"
+description = "Create dataset for the experiment"
+[tasks.ca]
+cmd = "python scripts/ca.py"
+description = "Run Conditional & Moving Average of dataset"
+
+[host-dependencies]
+python = "*"
+hatchling = "*"
+cython = "*"
+numpy = "*"
+raysect = "*"   # alternative for cherab
+
+[dependencies]
+scipy = "*"
+cherab-inversion = "*"
+matplotlib = "*"
+plotly = "*"
+contourpy = "*"
+ipython = "*"
+cairosvg = "*"
+xarray = "*"
+netcdf4 = "*"
+ffmpeg = "*"
+
+[pypi-dependencies]
+hatch-cython = ">=0.6.0rc0"
+cherab = "*"
+calcam = "*"
+wvfreader = "*"
+cherab-nagdis = { path = ".", editable = true }
+
+[pypi-options]
+no-build-isolation = ["cherab-nagdis"]
+
+[feature.lab.dependencies]
+ipykernel = "*"
+ipywidgets = "*"
+jupyterlab = "*"
+jupyter_bokeh = "*"
+hvplot = "*"
+panel = "*"
+
+[feature.lab.tasks.lab]
+cmd = "jupyter lab --notebook-dir notebooks/"
+description = "Launch Jupyter Lab"
+
+[feature.dev.dependencies]
+pytest = "*"
+pytest-cov = "*"
+pre-commit = "<4"  # docformatter issue: https://github.com/PyCQA/docformatter/pull/287
+black = "*"
+ruff = "*"
+mypy = "*"
+
+[feature.dev.tasks]
+format = { cmd = "pre-commit run --all-files", description = "Format and lint the code using pre-commit" }
+
+[environments]
+lab = { features = ["lab"], solve-group = "default"}
+dev = { features = ["dev"], solve-group = "default"}
