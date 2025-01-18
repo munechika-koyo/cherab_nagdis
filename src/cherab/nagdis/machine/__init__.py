@@ -1,4 +1,4 @@
-"""Subpackage related to the machine geometry and matrial properties"""
+"""Subpackage related to the machine geometry and material properties."""
 
 from .nagdis_ii import load_pfc_mesh
 

@@ -1,4 +1,4 @@
-"""Subpackage related to the tomographic inversion"""
+"""Subpackage related to the tomographic inversion."""
 
 from .mlem import MLEM
 

@@ -1,4 +1,4 @@
-"""Subpackage related to observers"""
+"""Subpackage related to observers."""
 
 from .camera import load_camera
 

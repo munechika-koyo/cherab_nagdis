@@ -1,1 +1,1 @@
-"""Subpackage related to handling experimental data"""
+"""Subpackage related to handling experimental data."""
