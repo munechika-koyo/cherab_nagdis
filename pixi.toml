@@ -16,19 +16,27 @@ description = "Create dataset for the experiment"
 cmd = "python scripts/ca.py"
 description = "Run Conditional & Moving Average of dataset"
 
+[activation.env]
+CHERAB_NGDIS_HOSTNAME = "sftp://133.6.100.44/home/koyo/cherab/nagdis/"
+CHERAB_NGDIS_USERNAME = "koyo"
+
 [host-dependencies]
-python = "*"
+python = "3.12.*"
 hatchling = "*"
+# hatch-cython = "*" # hatch-cython has not yet been available in conda-forge
 cython = "*"
 numpy = "*"
-# cherab = "*"  # cherab has not yet available in conda-forge
+# cherab = "*"  # cherab has not yet been available in conda-forge
 
 [dependencies]
+calcam = "*"
 scipy = "*"
 cherab-inversion = "*"
 matplotlib = "*"
 plotly = "*"
-contourpy = "*"
+pooch = "*"
+tqdm = "*"
+paramiko = "*"
 ipython = "*"
 cairosvg = "*"
 xarray = "*"
@@ -38,7 +46,6 @@ ffmpeg = "*"
 [pypi-dependencies]
 hatch-cython = ">=0.6.0rc0"
 cherab = "*"  # cherab has not yet available in conda-forge
-calcam = "*"  # calcam has not yet available in conda-forge
 wvfreader = "*"
 cherab-nagdis = { path = ".", editable = true }
 
