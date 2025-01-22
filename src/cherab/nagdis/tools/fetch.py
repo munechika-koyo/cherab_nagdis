@@ -27,7 +27,7 @@ REGISTRIES = {
     "machine/coils.rsm": "16318505135dd4f22577a097df7560f95de12fa9a3dce6baf89dcd2dabb157cf",
     "machine/coils_v2.rsm": "953ccbce46e1174a8d3ef37684baee6d86dd19c72db32d00186fb07d4760733e",
     # material data
-    "material/sus316L.json": "0f473be0d3f9efc88d11d3cbacbc5a8596ff2b39dcb2dbd561d0fa116de5f301",
+    "materials/sus316L.json": "0f473be0d3f9efc88d11d3cbacbc5a8596ff2b39dcb2dbd561d0fa116de5f301",
 }
 
 
