@@ -24,6 +24,7 @@ __all__ = ["load_camera", "show_camera_geometry"]
 def load_camera(
     parent: World,
     path_to_calibration: str = "20240705_mod.ccc",
+    **kwargs,
 ):
     """Loading fast lens camera configured with calcam calibration data.
 
@@ -37,6 +38,8 @@ def load_camera(
     path_to_calibration : str, optional
         Path to `calcam` calibration data, by default "20240705_mod.ccc".
         This file is fetched by `.fetch_file` function.
+    **kwargs
+        Additional keyword arguments to pass to `.fetch_file` function.
 
     Returns
     -------
@@ -55,7 +58,7 @@ def load_camera(
     """
     try:
         # Load calibration data from calcam file
-        path = fetch_file(path_to_calibration)
+        path = fetch_file(path_to_calibration, **kwargs)
         calib = Calibration(path)
 
         # Get camera matrix, rotation matrix and translation vector

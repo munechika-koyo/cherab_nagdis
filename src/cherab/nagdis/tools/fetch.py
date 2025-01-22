@@ -8,9 +8,9 @@ from pooch import SFTPDownloader
 __all__ = ["fetch_file", "show_registries"]
 
 
-HOSTNAME = os.environ.get("CHERAB_NGDIS_HOSTNAME")
-USERNAME = os.environ.get("CHERAB_NGDIS_USERNAME")
-PASSWORD = os.environ.get("CHERAB_NGDIS_PASSWORD")
+HOSTNAME = os.environ.get("SSH_RAYTRACE_HOSTNAME")
+USERNAME = os.environ.get("SSH_RAYTRACE_USERNAME")
+PASSWORD = os.environ.get("SSH_RAYTRACE_PASSWORD")
 
 # Registry of the datasets
 REGISTRIES = {
@@ -53,14 +53,14 @@ def fetch_file(
         Name of the file to fetch.
     host : str, optional
         Host name of the server, by default None.
-        If None, it will use the value from the environment variable `CHERAB_NGDIS_HOSTNAME`.
-        host name should be in the format `sftp://example.com`.
+        If None, it will use the value from the environment variable `SSH_RAYTRACE_HOSTNAME`.
+        host name should be in the format `sftp://example.com/{directories}`.
     username : str, optional
         Username to authenticate with the server, by default None.
-        If None, it will use the value from the environment variable `CHERAB_NGDIS_USERNAME`.
+        If None, it will use the value from the environment variable `SSH_RAYTRACE_USERNAME`.
     password : str, optional
         Password to authenticate with the server, by default None.
-        If None, it will use the value from the environment variable `CHERAB_NGDIS_PASSWORD`.
+        If None, it will use the value from the environment variable `SSH_RAYTRACE_PASSWORD`.
 
     Returns
     -------
@@ -68,7 +68,7 @@ def fetch_file(
         Path to the fetched file.
     """
     if host is None:
-        raise ValueError("Please provide a valid host name like sftp://example.com")
+        raise ValueError("Please provide a valid host name like sftp://example.com/directories.")
     if username is None:
         raise ValueError("Please provide a valid username for the server.")
     if password is None:

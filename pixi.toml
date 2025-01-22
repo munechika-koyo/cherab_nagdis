@@ -17,8 +17,8 @@ cmd = "python scripts/ca.py"
 description = "Run Conditional & Moving Average of dataset"
 
 [activation.env]
-CHERAB_NGDIS_HOSTNAME = "sftp://133.6.100.44/home/koyo/cherab/nagdis/"
-CHERAB_NGDIS_USERNAME = "koyo"
+SSH_RAYTRACE_HOSTNAME = "sftp://133.6.100.44/home/koyo/cherab/nagdis/"
+SSH_RAYTRACE_USERNAME = "koyo"
 
 [host-dependencies]
 python = "3.12.*"
