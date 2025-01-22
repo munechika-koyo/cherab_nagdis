@@ -81,6 +81,9 @@ ignore = [
   "N806", # variable in function should be lowercase
 ]
 
+[tool.ruff.lint.per-file-ignores]
+"**/*.ipynb" = ["W292"]  # no newline at end of file
+
 [tool.docformatter]
 recursive = true
 wrap-summaries = 100
