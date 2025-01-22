@@ -25,7 +25,7 @@ def load_camera(
     parent: World,
     path_to_calibration: str = "20240705_mod.ccc",
     **kwargs,
-):
+) -> ThinLensCCDArray:
     """Loading fast lens camera configured with calcam calibration data.
 
     Default camera extrinsic matrix (rotation matrix and translation vector) is loaded from
