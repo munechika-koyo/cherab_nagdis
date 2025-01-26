@@ -29,7 +29,7 @@ hatchling = "*"
 # hatch-cython = "*" # hatch-cython has not yet been available in conda-forge
 cython = "*"
 numpy = "*"
-# cherab = "*"  # cherab has not yet been available in conda-forge
+cherab = "*"
 
 [dependencies]
 calcam = "*"
@@ -38,8 +38,9 @@ cherab-inversion = "*"
 matplotlib = "*"
 plotly = "*"
 pooch = "*"
-tqdm = "*"
 paramiko = "*"
+tqdm = "*"
+rich = "*"
 ipython = "*"
 cairosvg = "*"
 xarray = "*"
@@ -48,7 +49,6 @@ ffmpeg = "*"
 
 [pypi-dependencies]
 hatch-cython = ">=0.6.0rc0"
-cherab = "*"  # cherab has not yet available in conda-forge
 wvfreader = "*"
 cherab-nagdis = { path = ".", editable = true }
 
@@ -80,7 +80,7 @@ ruff = "*"
 mypy = "*"
 
 [feature.dev.tasks]
-format = { cmd = "pre-commit run --all-files", description = "Format and lint the code using pre-commit" }
+format = { cmd = "pre-commit run --all-files", description = "Format and lint files using pre-commit" }
 
 [environments]
 lab = { features = ["lab"], solve-group = "default"}

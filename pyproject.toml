@@ -30,6 +30,7 @@ dependencies = [
   "pooch",
   "paramiko",
   "tqdm",
+  "rich",
 ]
 
 [project.urls]
