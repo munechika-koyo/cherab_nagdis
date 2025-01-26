@@ -12,9 +12,10 @@ from raysect.optical.material.absorber import AbsorbingSurface
 # from raysect.optical.material.lambert import Lambert
 from raysect.optical.material.material import Material
 from raysect.primitive.mesh import Mesh
+from rich.console import Console
+from rich.progress import track
+from rich.table import Table
 from scipy.spatial.transform import Rotation
-
-from cherab.inversion.tools import Spinner
 
 from ..tools.fetch import fetch_file
 from .material import RoughSUS316L
@@ -25,13 +26,13 @@ __all__ = ["load_pfc_mesh", "show_PFCs_3D"]
 SUS_ROUGHNESS = 0.0125
 
 # List of Plasma Facing Components (filename is "**.rsm")
-COMPONENTS: dict[str, tuple[str, Material]] = {
-    # name: (filename, material object)
-    "Vacuum Vessel Upper": ("vessel_upper", RoughSUS316L(SUS_ROUGHNESS)),
-    "Vacuum Vessel Lower": ("vessel_lower", RoughSUS316L(SUS_ROUGHNESS)),
-    "Gate Valve": ("gate_valve", RoughSUS316L(SUS_ROUGHNESS)),
-    # "Coils": ("coils", Lambert()),
-    # "Coils": ("coils_v2", Lambert()),
+COMPONENTS: dict[str, tuple[str, Material, float | None]] = {
+    # name: (filename, material class, roughness)
+    "Vacuum Vessel Upper": ("vessel_upper", RoughSUS316L, SUS_ROUGHNESS),
+    "Vacuum Vessel Lower": ("vessel_lower", RoughSUS316L, SUS_ROUGHNESS),
+    "Gate Valve": ("gate_valve", RoughSUS316L, SUS_ROUGHNESS),
+    # "Coils": ("coils", Lambert, None),
+    # "Coils": ("coils_v2", Lambert, None),
 }
 
 # How many times each PFC element must be copy-pasted in toroidal direction
@@ -43,9 +44,11 @@ ANG_OFFSET: dict[str, float] = defaultdict(lambda: 0.0)
 
 def load_pfc_mesh(
     world: World,
-    override_materials: dict[str, Material] | None = None,
+    custom_materials: dict[str, tuple[Material, float | None]] | None = None,
     reflection: bool = True,
     is_fine_mesh: bool = True,
+    show_result: bool = True,
+    **kwargs,
 ) -> dict[str, list[Mesh]]:
     """Load plasma facing component meshes.
 
@@ -55,15 +58,21 @@ def load_pfc_mesh(
     Parameters
     ----------
     world : :obj:`~raysect.optical.world.World`
-        The world scenegraph belonging to these materials.
-    override_materials : dict[str, Material], optional
-        User-defined material. Set up like ``{"Vacuum Vessel Upper": RoughSUS316L(0.05), ...}``.
+        The world scenegraph to which the meshes will be added.
+    custom_materials : dict[str, tuple[Material, float | None]], optional
+        User-defined material, by default None
+        Set up like ``{"Vacuum Vessel Upper": (RoughSUS316L, 0.05), ...}``, where the key is the
+        name of the mesh and the value is a tuple of material class and roughness.
     reflection : bool, optional
         Whether or not to consider reflection light, by default True.
         If ``False``, all of meshes' material are replaced to
         :obj:`~raysect.optical.material.absorber.AbsorbingSurface`.
     is_fine_mesh : bool, optional
         Whether or not to use fine mesh for the vacuum vessel, by default True.
+    show_result : bool, optional
+        Whether or not to show the result table of loading, by default True.
+    **kwargs
+        Keyword arguments to pass to `.fetch_file`.
 
     Returns
     -------
@@ -81,80 +90,84 @@ def load_pfc_mesh(
         meshes = load_pfc_mesh(world, reflection=True)
     """
     if is_fine_mesh:
-        COMPONENTS["Vacuum Vessel Upper"] = (
-            "vessel_upper_fine",
-            RoughSUS316L(SUS_ROUGHNESS),
-        )
-        COMPONENTS["Vacuum Vessel Lower"] = (
-            "vessel_lower_fine",
-            RoughSUS316L(SUS_ROUGHNESS),
-        )
+        COMPONENTS["Vacuum Vessel Upper"] = ("vessel_upper_fine", RoughSUS316L, SUS_ROUGHNESS)
+        COMPONENTS["Vacuum Vessel Lower"] = ("vessel_lower_fine", RoughSUS316L, SUS_ROUGHNESS)
+
+    # Fetch meshes in advance
+    paths_to_rsm = {}
+    for mesh_name, (filename, _, _) in COMPONENTS.items():
+        path = fetch_file(f"machine/{filename}.rsm", **kwargs)
+        paths_to_rsm[mesh_name] = path
 
     meshes = {}
+    statuses = []
+    for mesh_name, (_, material_cls, roughness) in track(
+        COMPONENTS.items(), description="Loading PFCs...", transient=True
+    ):
+        try:
+            # Configure material
+            if not reflection:
+                material_cls = AbsorbingSurface
+                roughness = None
+            else:
+                if custom_materials and mesh_name in custom_materials:
+                    material_cls, roughness = custom_materials[mesh_name]
+            if roughness is not None:
+                material = material_cls(roughness=roughness)
+            else:
+                material = material_cls()
 
-    with Spinner(text="Loading PFCs...") as spinner:
-        for mesh_name, (filename, default_material) in COMPONENTS.items():
-            try:
-                spinner.text = f"Loading {mesh_name}..."
-
-                # === fetch file ===
-                path_to_rsm = fetch_file(f"machine/{filename}.rsm")
-
-                # === set material ===
-                if not reflection:
-                    material = AbsorbingSurface()
-                else:
-                    if isinstance(override_materials, dict):
-                        material = override_materials.get(mesh_name, None)
-                        if material is None:
-                            material = default_material
-                        elif isinstance(material, Material):
-                            pass
-                        else:
-                            raise TypeError(
-                                f"override_materials[{mesh_name}] must be Material instance."
-                            )
-                    elif override_materials is None:
-                        material = default_material
-                    else:
-                        raise TypeError(
-                            f"override_materials must be dict[str, Material] instance or None. ({mesh_name})"
-                        )
-
-                # === load mesh ===
-                # master element
-                meshes[mesh_name] = [
-                    Mesh.from_file(
-                        path_to_rsm,
+            # ================================
+            # Load mesh
+            # ================================
+            # master element
+            meshes[mesh_name] = [
+                Mesh.from_file(
+                    paths_to_rsm[mesh_name],
+                    parent=world,
+                    transform=rotate_z(ANG_OFFSET[mesh_name]),
+                    material=material,
+                    name=f"{mesh_name} 1" if NCOPY[mesh_name] > 1 else f"{mesh_name}",
+                )
+            ]
+            # copies of the master element
+            angle = 360.0 / NCOPY[mesh_name]
+            for i in range(1, NCOPY[mesh_name]):
+                meshes[mesh_name].append(
+                    meshes[mesh_name][0].instance(
                         parent=world,
-                        transform=rotate_z(ANG_OFFSET[mesh_name]),
+                        transform=rotate_z(angle * i + ANG_OFFSET[mesh_name]),
                         material=material,
-                        name=f"{mesh_name} 1" if NCOPY[mesh_name] > 1 else f"{mesh_name}",
+                        name=f"{mesh_name} {i + 1}",
                     )
-                ]
+                )
 
-                # copies of the master element
-                angle = 360.0 / NCOPY[mesh_name]
-                for i in range(1, NCOPY[mesh_name]):
-                    meshes[mesh_name].append(
-                        meshes[mesh_name][0].instance(
-                            parent=world,
-                            transform=rotate_z(angle * i + ANG_OFFSET[mesh_name]),
-                            material=material,
-                            name=f"{mesh_name} {i + 1}",
-                        )
-                    )
+            # Save the status of loading
+            _status = "✅"
+        except Exception as e:
+            _status = f"❌ ({e})"
+        finally:
+            statuses.append(
+                (
+                    mesh_name,
+                    paths_to_rsm[mesh_name],
+                    material_cls.__name__,
+                    str(roughness),
+                    _status,
+                )
+            )
 
-                # === print result ===
-                material_str = str(material).split()[0].split(".")[-1]
-                if roughness := getattr(material, "roughness", None):
-                    material_str = f"{material_str: <12} (roughness: {roughness:.4f})"
-                else:
-                    material_str = f"{material_str}"
-                spinner.write(f"✅ {mesh_name: <22}: {material_str}")
-
-            except Exception as e:
-                spinner.write(f"💥 {e}")
+    if show_result:
+        table = Table(title="Plasma Facing Components")
+        table.add_column("Name", justify="left", style="cyan")
+        table.add_column("Path to file", justify="left", style="magenta")
+        table.add_column("Material", justify="center", style="green")
+        table.add_column("Roughness", justify="center", style="yellow")
+        table.add_column("Loaded", justify="center")
+        for status in statuses:
+            table.add_row(*status)
+        console = Console()
+        console.print(table)
 
     return meshes
 
