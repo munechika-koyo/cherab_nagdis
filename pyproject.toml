@@ -38,6 +38,12 @@ repository = "https://github.com/munechika-koyo/cherab_nagdis"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/cherab"]
+artifacts = [
+  "*.so",
+  "*.dll",
+  "*.dylib",
+]
+exclude = ["*.pyx"]
 
 [tool.hatch.build.targets.wheel.hooks.cython]
 dependencies = ["hatch-cython"]
