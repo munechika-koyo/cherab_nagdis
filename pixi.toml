@@ -26,6 +26,7 @@ c-compiler = "*"
 [host-dependencies]
 python = "3.12.*"
 hatchling = "*"
+hatch-vcs = "*"
 # hatch-cython = "*" # hatch-cython has not yet been available in conda-forge
 cython = "*"
 numpy = "*"
