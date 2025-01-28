@@ -1,6 +1,5 @@
 [project]
 name = "cherab-nagdis"
-version = "0.1.0"
 description = "Cherab for NAGDIS-II"
 authors = ["munechika-koyo <munechika.koyo@torus.nr.ttitech.ac.jp>"]
 channels = ["https://prefix.dev/conda-forge"]
