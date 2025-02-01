@@ -12,8 +12,9 @@ from raysect.optical.material.absorber import AbsorbingSurface
 # from raysect.optical.material.lambert import Lambert
 from raysect.optical.material.material import Material
 from raysect.primitive.mesh import Mesh
-from rich.console import Console
-from rich.progress import track
+from rich.console import Group
+from rich.live import Live
+from rich.progress import Progress
 from rich.table import Table
 from scipy.spatial.transform import Rotation
 
@@ -44,40 +45,41 @@ ANG_OFFSET: dict[str, float] = defaultdict(lambda: 0.0)
 
 def load_pfc_mesh(
     world: World,
-    custom_materials: dict[str, tuple[Material, float | None]] | None = None,
+    custom_components: dict[str, tuple[str, Material, float | None]] | None = None,
     reflection: bool = True,
     is_fine_mesh: bool = True,
-    show_result: bool = True,
+    quiet: bool = False,
     **kwargs,
 ) -> dict[str, list[Mesh]]:
     """Load plasma facing component meshes.
 
     Each mesh allows the user to use an user-defined material which inherites
-    :obj:`~raysect.optical.material.material.Material`.
+    `~raysect.optical.material.material.Material`.
 
     Parameters
     ----------
-    world : :obj:`~raysect.optical.world.World`
+    world : `~raysect.optical.world.World`
         The world scenegraph to which the meshes will be added.
-    custom_materials : dict[str, tuple[Material, float | None]], optional
-        User-defined material, by default None
-        Set up like ``{"Vacuum Vessel Upper": (RoughSUS316L, 0.05), ...}``, where the key is the
-        name of the mesh and the value is a tuple of material class and roughness.
+    custom_components : dict[str, tuple[str, Material, float | None]], optional
+        Custom components to load, by default None.
+        The structure of the dictionary is as follows:
+        ``{"Component Name": ("path", Material, roughness)}``.
+        If the custom component is given, it is merged with the default components.
     reflection : bool, optional
         Whether or not to consider reflection light, by default True.
         If ``False``, all of meshes' material are replaced to
-        :obj:`~raysect.optical.material.absorber.AbsorbingSurface`.
+        `~raysect.optical.material.absorber.AbsorbingSurface`.
     is_fine_mesh : bool, optional
         Whether or not to use fine mesh for the vacuum vessel, by default True.
-    show_result : bool, optional
-        Whether or not to show the result table of loading, by default True.
+    quiet : bool, optional
+        If ``True``, it suppresses the progress table, by default False.
     **kwargs
         Keyword arguments to pass to `.fetch_file`.
 
     Returns
     -------
-    dict[str, list[:obj:`~raysect.primitive.mesh.mesh.Mesh`]]
-        Containing mesh name and :obj:`~raysect.primitive.mesh.mesh.Mesh` objects.
+    dict[str, list[`~raysect.primitive.mesh.mesh.Mesh`]]
+        Containing mesh name and `~raysect.primitive.mesh.mesh.Mesh` objects.
 
     Examples
     --------
@@ -93,81 +95,94 @@ def load_pfc_mesh(
         COMPONENTS["Vacuum Vessel Upper"] = ("vessel_upper_fine", RoughSUS316L, SUS_ROUGHNESS)
         COMPONENTS["Vacuum Vessel Lower"] = ("vessel_lower_fine", RoughSUS316L, SUS_ROUGHNESS)
 
+    # Merge default components and custom components
+    if custom_components is not None:
+        components = COMPONENTS | custom_components
+    else:
+        components = COMPONENTS
+
     # Fetch meshes in advance
     paths_to_rsm = {}
-    for mesh_name, (filename, _, _) in COMPONENTS.items():
+    for mesh_name, (filename, _, _) in components.items():
         path = fetch_file(f"machine/{filename}.rsm", **kwargs)
         paths_to_rsm[mesh_name] = path
 
-    meshes = {}
-    statuses = []
-    for mesh_name, (_, material_cls, roughness) in track(
-        COMPONENTS.items(), description="Loading PFCs...", transient=True
-    ):
-        try:
-            # Configure material
-            if not reflection:
-                material_cls = AbsorbingSurface
-                roughness = None
-            else:
-                if custom_materials and mesh_name in custom_materials:
-                    material_cls, roughness = custom_materials[mesh_name]
-            if roughness is not None:
-                material = material_cls(roughness=roughness)
-            else:
-                material = material_cls()
+    # Create progress bar and add task
+    progress = Progress(transient=True)
+    task_id = progress.add_task("", total=len(components))
 
-            # ================================
-            # Load mesh
-            # ================================
-            # master element
-            meshes[mesh_name] = [
-                Mesh.from_file(
-                    paths_to_rsm[mesh_name],
-                    parent=world,
-                    transform=rotate_z(ANG_OFFSET[mesh_name]),
-                    material=material,
-                    name=f"{mesh_name} 1" if NCOPY[mesh_name] > 1 else f"{mesh_name}",
-                )
-            ]
-            # copies of the master element
-            angle = 360.0 / NCOPY[mesh_name]
-            for i in range(1, NCOPY[mesh_name]):
-                meshes[mesh_name].append(
-                    meshes[mesh_name][0].instance(
-                        parent=world,
-                        transform=rotate_z(angle * i + ANG_OFFSET[mesh_name]),
-                        material=material,
-                        name=f"{mesh_name} {i + 1}",
-                    )
-                )
-
-            # Save the status of loading
-            _status = "✅"
-        except Exception as e:
-            _status = f"❌ ({e})"
-        finally:
-            statuses.append(
-                (
-                    mesh_name,
-                    paths_to_rsm[mesh_name],
-                    material_cls.__name__,
-                    str(roughness),
-                    _status,
-                )
-            )
-
-    if show_result:
-        table = Table(title="Plasma Facing Components")
+    if not quiet:
+        # Create Table of the status of loading
+        table = Table(title="Plasma Facing Components", show_footer=False)
         table.add_column("Name", justify="left", style="cyan")
         table.add_column("Path to file", justify="left", style="magenta")
         table.add_column("Material", justify="center", style="green")
         table.add_column("Roughness", justify="center", style="yellow")
         table.add_column("Loaded", justify="center")
-        for status in statuses:
-            table.add_row(*status)
-        console = Console()
-        console.print(table)
+
+        # Create Group to show progress bar and table
+        progress_group = Group(table, progress)
+    else:
+        progress_group = Group(progress)
+
+    # Load meshes
+    meshes = {}
+    with Live(progress_group, refresh_per_second=50):
+        for mesh_name, (_, material_cls, roughness) in components.items():
+            progress.update(task_id, description=f"Loading {mesh_name}...")
+            try:
+                # Configure material
+                if not reflection:
+                    material_cls = AbsorbingSurface
+                    roughness = None
+
+                if roughness is not None:
+                    material = material_cls(roughness=roughness)
+                else:
+                    material = material_cls()
+
+                # ================================
+                # Load mesh
+                # ================================
+                # Load master element
+                meshes[mesh_name] = [
+                    Mesh.from_file(
+                        paths_to_rsm[mesh_name],
+                        parent=world,
+                        transform=rotate_z(ANG_OFFSET[mesh_name]),
+                        material=material,
+                        name=f"{mesh_name} 1" if NCOPY[mesh_name] > 1 else f"{mesh_name}",
+                    )
+                ]
+                # Copy of the master element
+                angle = 360.0 / NCOPY[mesh_name]
+                for i in range(1, NCOPY[mesh_name]):
+                    meshes[mesh_name].append(
+                        meshes[mesh_name][0].instance(
+                            parent=world,
+                            transform=rotate_z(angle * i + ANG_OFFSET[mesh_name]),
+                            material=material,
+                            name=f"{mesh_name} {i + 1}",
+                        )
+                    )
+
+                # Save the status of loading
+                _status = "✅"
+            except Exception as e:
+                _status = f"❌ ({e})"
+            finally:
+                if not quiet:
+                    table.add_row(
+                        mesh_name,
+                        paths_to_rsm[mesh_name],
+                        material_cls.__name__,
+                        str(roughness),
+                        _status,
+                    )
+                progress.advance(task_id)
+
+        progress.update(task_id, visible=False)
+        progress.stop_task(task_id)
 
     return meshes
 
@@ -179,14 +194,14 @@ def show_PFCs_3D(fig: Figure | None = None, fig_size: tuple[int, int] = (700, 50
 
     Parameters
     ----------
-    fig : :obj:`~plotly.graph_objects.Figure`, optional
-        Plotly Figure object, by default :obj:`~plotly.graph_objects.Figure`.
+    fig : `~plotly.graph_objects.Figure`, optional
+        Plotly Figure object, by default `~plotly.graph_objects.Figure`.
     fig_size : tuple[int, int], optional
         Figure size, by default (700, 500) pixel.
 
     Returns
     -------
-    :obj:`~plotly.graph_objects.Figure`
+    `~plotly.graph_objects.Figure`
         Plotly Figure object.
 
     Examples
