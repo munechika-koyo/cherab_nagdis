@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-from time import time
-
 import numpy as np
+from rich.console import Console
+from rich.progress import Progress, TimeRemainingColumn
 from scipy.sparse import spmatrix
-
-from cherab.inversion.tools.spinner import DummySpinner, Spinner
 
 __all__ = ["MLEM"]
 
@@ -21,18 +19,18 @@ class MLEM:
 
     Parameters
     ----------
-    T : array-like
+    T : (M, N) ndarray | spmatrix
         Matrix :math:`\\mathbf{T}` of the forward problem.
-    data : array-like, optional
-        Given data :math:`\\mathbf{b}`. :math:`n` time slices of the data vector
-        :math:`\\begin{bmatrix} \\mathbf{b}_1 & \\mathbf{b}_2 & \\cdots & \\mathbf{b}_n \\end{bmatrix}`
-        can be given as an array-like object.
+    data : (M, ) or (M, K) array_like, optional
+        Given data :math:`\\mathbf{b}_k`. :math:`k` time slices of the data vector
+        :math:`\\begin{bmatrix} \\mathbf{b}_1 & \\mathbf{b}_2 & \\cdots & \\mathbf{b}_K \\end{bmatrix}`
+        can be given as an array_like object.
     """
 
     def __init__(self, T, data) -> None:
         # validate arguments
         if not hasattr(T, "ndim"):
-            raise TypeError("T must be an array-like object")
+            raise TypeError("T must be an ndarray object")
         if T.ndim != 2:
             raise ValueError("T must be a 2D array")
 
@@ -50,11 +48,11 @@ class MLEM:
 
     @property
     def data(self) -> np.ndarray:
-        """Given data :math:`\\mathbf{b}`.
+        """Given data :math:`\\mathbf{b}_k`.
 
-        :math:`n` time slices of the data vector
-        :math:`\\begin{bmatrix} \\mathbf{b}_1 & \\mathbf{b}_2 & \\cdots & \\mathbf{b}_n \\end{bmatrix}`
-        can be given as an array-like object.
+        :math:`k` time slices of the data vector
+        :math:`\\begin{bmatrix} \\mathbf{b}_1 & \\mathbf{b}_2 & \\cdots & \\mathbf{b}_K \\end{bmatrix}`
+        can be given as an array_like object.
         """
         return self._data
 
@@ -77,29 +75,32 @@ class MLEM:
         x0: np.ndarray | None = None,
         tol: float = 1e-5,
         max_iter: int = 100,
-        spinner: bool = True,
+        quiet: bool = False,
         store_temp: bool = False,
     ):
         """Solve the inverse problem using the MLEM algorithm.
 
         Parameters
         ----------
-        x0 : array-like, optional
-            Initial guess of the solution :math:`\\mathbf{x}`. If not given, a vector of ones is used.
+        x0 : (N, ) or (N, K) ndarray, optional
+            Initial guess of the solution :math:`\\mathbf{x}`.
+            If not given, a vector of ones is used.
         tol : float, optional
-            Tolerance for convergence. The iteration stops when the maximum difference between the current and
-            previous solutions is less than this value.
+            Tolerance for convergence, by default 1e-5.
+            The iteration stops when the maximum difference between the current and previous
+            solutions is less than this value.
         max_iter : int, optional
-            Maximum number of iterations.
-        spinner : bool, optional
-            If True, a spinner is shown during the iteration.
+            Maximum number of iterations, by default 100.
+        quiet : bool, optional
+            Whether to suppress the progress bar, by default False.
         store_temp : bool, optional
-            If True, the temporary solutions are stored in the status dictionary.
+            Whether to store the temporary solutions during the iteration, by default False.
 
         Returns
         -------
-        x : array-like
+        x : (N, ) or (N, K) ndarray
             Solution of the inverse problem.
+            If the data has K time slices, the solution is a matrix.
         status : dict
             Dictionary containing the status of the iteration.
         """
@@ -126,11 +127,16 @@ class MLEM:
         def _tolerance(x):
             return tol * np.amax(x)
 
-        # set spinner
-        if spinner:
-            _spinner = Spinner
-        else:
-            _spinner = DummySpinner
+        # set progress bar
+        console = Console(quiet=quiet)
+        progress = Progress(
+            *Progress.get_default_columns()[:3],
+            TimeRemainingColumn(elapsed_when_finished=True),
+            auto_refresh=False,
+            console=console,
+        )
+        task_id = progress.add_task("Pre-processing...", total=max_iter)
+        progress.refresh()
 
         # set iteration counter and status
         niter = 0
@@ -143,11 +149,11 @@ class MLEM:
         T_t = self._T.T  # transpose of T
         T_t1_recip = 1.0 / (T_t @ np.ones_like(self._data))  # 1 / (T^T @ 1)
 
-        # set timer
-        start_time = time()
-
         # start iteration
-        with _spinner(f"{niter:03}-th iteration", timer=True) as sp:
+        with progress:
+            # update progress bar
+            progress.update(task_id, description="Solving...")
+            progress.refresh()
             while niter < max_iter and not self._converged:
                 data = self._T @ x0  # projection of the solution
                 ratio = self._data / data
@@ -164,15 +170,19 @@ class MLEM:
 
                 # update solution
                 x0 = x
-                sp.text = f"{niter:03}-th iteration (Max Diff: {diff_max:.3e}, Tol: {_tol:.3e})"
+                text = f"(Max Diff: {diff_max:.2e}, Tol: {_tol:.2e})"
 
                 niter += 1
+                progress.update(task_id, description=f"Solving...{text}", advance=1)
+                progress.refresh()
 
-            sp.ok()
-        elapsed_time = time() - start_time
+            else:
+                # stop progress bar
+                progress.update(task_id, description=f"Completed {text}", completed=max_iter)
+                progress.refresh()
 
         # set status
-        status["elapsed_time"] = elapsed_time
+        status["elapsed_time"] = progress.tasks[task_id].elapsed
         status["niter"] = niter
         status["tol"] = _tol
         status["converged"] = self._converged
