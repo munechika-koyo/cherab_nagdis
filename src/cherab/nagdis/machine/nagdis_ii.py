@@ -12,7 +12,7 @@ from raysect.optical.material.absorber import AbsorbingSurface
 # from raysect.optical.material.lambert import Lambert
 from raysect.optical.material.material import Material
 from raysect.primitive.mesh import Mesh
-from rich.console import Group
+from rich.console import Console, Group
 from rich.live import Live
 from rich.progress import Progress
 from rich.table import Table
@@ -127,9 +127,10 @@ def load_pfc_mesh(
 
     # Load meshes
     meshes = {}
-    with Live(progress_group, refresh_per_second=50):
+    with Live(progress_group, auto_refresh=False, console=Console(quiet=quiet)) as live:
         for mesh_name, (_, material_cls, roughness) in components.items():
             progress.update(task_id, description=f"Loading {mesh_name}...")
+            live.refresh()
             try:
                 # Configure material
                 if not reflection:
@@ -182,7 +183,7 @@ def load_pfc_mesh(
                 progress.advance(task_id)
 
         progress.update(task_id, visible=False)
-        progress.stop_task(task_id)
+        live.refresh()
 
     return meshes
 
