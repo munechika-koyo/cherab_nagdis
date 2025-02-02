@@ -93,14 +93,14 @@ mypy = "*"
 [feature.lint.tasks]
 lint = { cmd = ["ruff", "check"], description = "🧹 Lint the code" }
 format = { cmd = ["ruff", "format"], description = "🧹 Format the code" }
-check = { cmd = [
+pre-commit-run = { cmd = [
     "pre-commit",
     "run",
     "--all-files",
 ], description = "🩺 Check pre-commit hooks", depends-on = [
-    "install_hook",
+    "pre-commit-install",
 ] }
-install_hooks = { cmd = [
+pre-commit-install = { cmd = [
     "pre-commit",
     "install",
 ], description = "🔗 Install pre-commit hooks" }
