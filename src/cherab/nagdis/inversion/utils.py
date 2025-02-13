@@ -58,16 +58,14 @@ def get_voxel_centers(rto: RayTransferObject) -> np.ndarray:
 
         voxel_centers = np.zeros((nx, ny, nz, 3))
 
-        for i in range(nx):
-            for j in range(ny):
-                for k in range(nz):
-                    center_point = (
-                        origin
-                        + (i + 0.5) * dx * basis_x
-                        + (j + 0.5) * dy * basis_y
-                        + (k + 0.5) * dz * basis_z
-                    )
-                    voxel_centers[i, j, k] = center_point.x, center_point.y, center_point.z
+        for i, j, k in np.ndindex(nx, ny, nz):
+            center_point = (
+                origin
+                + (i + 0.5) * dx * basis_x
+                + (j + 0.5) * dy * basis_y
+                + (k + 0.5) * dz * basis_z
+            )
+            voxel_centers[i, j, k] = center_point.x, center_point.y, center_point.z
 
     elif is_cylindrical:
         dr, dphi, dz = rto.material.grid_steps
@@ -75,13 +73,12 @@ def get_voxel_centers(rto: RayTransferObject) -> np.ndarray:
 
         voxel_centers = np.zeros((nr, nphi, nz, 3))
 
-        for i in range(nr):
-            for j in range(nphi):
-                basis_r = basis_x.transform(rotate_vector((j + 0.5) * dphi, basis_z))
+        for i, j in np.ndindex(nr, nphi):
+            basis_r = basis_x.transform(rotate_vector((j + 0.5) * dphi, basis_z))
 
-                for k in range(nz):
-                    center_point = origin + (i + 0.5) * dr * basis_r + (k + 0.5) * dz * basis_z
-                    voxel_centers[i, j, k] = center_point.x, center_point.y, center_point.z
+            for k in range(nz):
+                center_point = origin + (i + 0.5) * dr * basis_r + (k + 0.5) * dz * basis_z
+                voxel_centers[i, j, k] = center_point.x, center_point.y, center_point.z
     else:
         raise TypeError("Invalid RayTransferObject type.")
 
