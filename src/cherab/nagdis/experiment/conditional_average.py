@@ -45,7 +45,7 @@ class ConditionalAverage:
         height : array_like, optional
             Factor of standard deviation to set the height of peaks, by default 2.5.
             If a float, the height is set to `mean + height * std`.
-            If an array-like with two elements, the height is set to
+            If an array_like with two elements, the height is set to
             `(mean + height[0] * std, mean + height[1] * std)`.
             Otherwise, raise ValueError.
         prominence : float, optional
