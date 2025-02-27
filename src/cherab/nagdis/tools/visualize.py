@@ -10,6 +10,8 @@ from matplotlib.axis import XAxis, YAxis
 from matplotlib.cm import ScalarMappable, get_cmap
 from matplotlib.colors import ListedColormap, LogNorm, Normalize, SymLogNorm
 from matplotlib.figure import Figure
+from matplotlib.offsetbox import AnchoredText
+from matplotlib.patheffects import withStroke
 from matplotlib.ticker import (
     AutoLocator,
     AutoMinorLocator,
@@ -317,3 +319,43 @@ def _set_cbar_extend(user_vmin: float, user_vmax: float, data_vmin: float, data_
             extend = "neither"
 
     return extend
+
+
+def add_inner_title(
+    ax: Axes,
+    title: str,
+    loc: str = "upper left",
+    size: float = plt.rcParams["legend.fontsize"],
+    borderpad: float = 0.5,
+    **kwargs,
+):
+    """Add inner title to the axes.
+
+    The text is padded by borderpad and has white stroke effect.
+
+    Parameters
+    ----------
+    ax : `~matplotlib.axes.Axes`
+        Matplotlib Axes object.
+    title : str
+        Title text.
+    loc : str, optional
+        Location of the title, by default "upper left".
+    size : int, optional
+        Font size of the title, by default `plt.rcParams["legend.fontsize"]`.
+    borderpad : float, optional
+        Padding of the title, by default 0.5.
+    **kwargs
+        Keyword arguments for `~matplotlib.offsetbox.AnchoredText`.
+
+    Returns
+    -------
+    `~matplotlib.offsetbox.AnchoredText`
+        AnchoredText object.
+    """
+    prop = dict(path_effects=[withStroke(linewidth=3, foreground="w")], size=size)
+    at = AnchoredText(
+        title, loc=loc, prop=prop, pad=0.0, borderpad=borderpad, frameon=False, **kwargs
+    )
+    ax.add_artist(at)
+    return at
