@@ -9,15 +9,26 @@ platforms = ["linux-64", "osx-arm64", "osx-64"]
 clean = { cmd = [
     "find",
     "src/",
-    "-type f \\(",
-    "-name '*.c' -o",
-    "-name '*.so' -o",
-    "-name '*.dylib' -o",
-    "-name '*.html'",
-    "\\) -delete",
+    "-type",
+    "f",
+    "\\(",
+    "-name",
+    "'*.c'",
+    "-o",
+    "-name",
+    "'*.so'",
+    "-o",
+    "-name",
+    "'*.dylib'",
+    "-o",
+    "-name",
+    "'*.html'",
+    "\\)",
+    "-delete",
 ], description = "🔥 Remove build artifacts and temporary files (e.g. *.c, *.so, *.dylib, *.html)" }
 dataset = { cmd = [
-    "python -c ",
+    "python",
+    "-c",
     "'from experiment.dataset import create_dataset; create_dataset()'",
 ], description = "Create dataset for the experiment"}
 ca = { cmd = "python scripts/ca.py", description = "Run Conditional & Moving Average of dataset" }
@@ -81,6 +92,9 @@ description = "🚀 Launch Jupyter Lab"
 [feature.test.dependencies]
 pytest = "*"
 pytest-cov = "*"
+
+[feature.test.pypi-dependencies]
+pytest-github-report = "*"
 
 [feature.test.tasks]
 test = { cmd = ["pytest", "tests"], description = "🧪 Run the tests" }
