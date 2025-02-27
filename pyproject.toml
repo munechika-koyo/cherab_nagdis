@@ -36,11 +36,17 @@ dynamic = ["version"]
 [project.urls]
 repository = "https://github.com/munechika-koyo/cherab_nagdis"
 
+# ----------------------
+# === Version config ===
+# ----------------------
 [tool.hatch.version]
 source = "vcs"
 
 [tool.hatch.metadata.hooks.vcs]
 
+# ----------------------------
+# === Build/Package config ===
+# ----------------------------
 [tool.hatch.build.targets.wheel]
 packages = ["src/cherab"]
 artifacts = [
@@ -62,8 +68,11 @@ compile_py = false
 [tool.hatch.build.targets.wheel.hooks.cython.options.files]
 targets = ["**/*.pyx"]
 
+# -----------------------
+# === Cov/Test config ===
+# -----------------------
 [tool.coverage.run]
-source_pkgs = ["test", "tests"]
+source_pkgs = ["cherab.nagdis", "tests"]
 branch = true
 parallel = true
 
@@ -74,6 +83,13 @@ tests = ["tests", "*/test/tests"]
 [tool.coverage.report]
 exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
 
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--cov=cherab_nagdis --cov-report term-missing --no-cov-on-fail"
+
+# --------------------------
+# === Lint/Format config ===
+# --------------------------
 [tool.cython-lint]
 max-line-length = 140
 
