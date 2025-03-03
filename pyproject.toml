@@ -72,7 +72,7 @@ targets = ["**/*.pyx"]
 # === Cov/Test config ===
 # -----------------------
 [tool.coverage.run]
-source_pkgs = ["cherab.nagdis", "tests"]
+source_pkgs = ["cherab.nagdis"]
 branch = true
 parallel = true
 
