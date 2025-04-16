@@ -42,10 +42,8 @@ c-compiler = "*"
 
 [host-dependencies]
 python = ">=3.9"
-hatchling = "*"
+hatch-cython = ">=0.6.0rc0"
 hatch-vcs = "*"
-# hatch-cython = "*" # hatch-cython has not yet been available in conda-forge
-cython = "*"
 numpy = "*"
 cherab = "*"
 
@@ -66,7 +64,6 @@ netcdf4 = "*"
 ffmpeg = "*"
 
 [pypi-dependencies]
-hatch-cython = ">=0.6.0rc0"
 wvfreader = "*"
 cherab-nagdis = { path = ".", editable = true }
 
