@@ -72,7 +72,7 @@ cdef class ThinLensCCDArray(Observer2D):
         width=0.035,
         focal_length=10.e-3,
         working_distance=50.e-2,
-        ccd_distance=-1,
+        ccd_distance=None,
         f_number=3.5,
         lens_samples=100,
         per_pixel_samples=10,
@@ -102,7 +102,8 @@ cdef class ThinLensCCDArray(Observer2D):
         # lens geometry calculations, respectively.
         self.width = width
         self.focal_length = focal_length
-        self.ccd_distance = ccd_distance
+        if ccd_distance is not None:
+            self.ccd_distance = ccd_distance
 
     @property
     def pixels(self) -> tuple[int, int]:
