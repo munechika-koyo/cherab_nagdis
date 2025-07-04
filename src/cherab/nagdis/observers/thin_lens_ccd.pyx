@@ -81,12 +81,12 @@ cdef class ThinLensCCDArray(Observer2D):
         # Set initial values to avoid undefined behaviour when setting via setters
         self._width = 0.035
         self._pixels = (720, 480)
-        self._focal_length = focal_length
-        self._working_distance = working_distance
+        self._focal_length = 10.e-3
+        self._working_distance = 50.e-2
         self._ccd_distance = -1
-        self._f_number = f_number
-        self._lens_samples = lens_samples
-        self._per_pixel_samples = per_pixel_samples
+        self._f_number = 3.5
+        self._lens_samples = 100
+        self._per_pixel_samples = 10
 
         pipelines = pipelines or [RGBPipeline2D()]
 
@@ -95,8 +95,14 @@ cdef class ThinLensCCDArray(Observer2D):
                          parent=parent, transform=transform, name=name)
 
         # Setting width and focal_length triggers calculation of image and lens geometry
+        self.lens_samples = lens_samples
+        self.per_pixel_samples = per_pixel_samples
         self.width = width
+        self.f_number = f_number
+
+        # Setting the following properties triggers calculation of a lens equation
         self.focal_length = focal_length
+        self.working_distance = working_distance
         if ccd_distance is not None:
             self.ccd_distance = ccd_distance
 
@@ -159,6 +165,7 @@ cdef class ThinLensCCDArray(Observer2D):
             raise ValueError("Focal length must be greater than 0.")
         self._focal_length = focal_length
         self._update_lens_geometry()
+        self._update_ccd_distance()
 
     @property
     def f_number(self) -> float:
@@ -191,6 +198,7 @@ cdef class ThinLensCCDArray(Observer2D):
             raise ValueError("Working distance must be greater than 0.")
         self._working_distance = working_distance
         self._update_lens_geometry()
+        self._update_ccd_distance()
 
     @property
     def ccd_distance(self) -> float:
@@ -207,6 +215,7 @@ cdef class ThinLensCCDArray(Observer2D):
             raise ValueError("CCD distance must be greater than 0.")
         self._ccd_distance = ccd_distance
         self._update_lens_geometry()
+        self._update_working_distance()
 
     @property
     def lens_radius(self) -> float:
@@ -255,12 +264,14 @@ cdef class ThinLensCCDArray(Observer2D):
 
     cdef object _update_lens_geometry(self):
         self._lens_radius = 0.5 * self._focal_length / self._f_number
-        if self._ccd_distance < 0.0:
-            self._ccd_distance = 1 / (1 / self._focal_length - 1 / self._working_distance)
-        else:
-            self._working_distance = 1 / (1 / self._focal_length - 1 / self._ccd_distance)
         self._lens_sampler = DiskSampler3D(self._lens_radius)
         self._lens_area = M_PI * self._lens_radius**2
+
+    cdef object _update_ccd_distance(self):
+        self._ccd_distance = 1 / (1 / self._focal_length - 1 / self._working_distance)
+
+    cdef object _update_working_distance(self):
+        self._working_distance = 1 / (1 / self._focal_length - 1 / self._ccd_distance)
 
     cdef object _update_pixel_samples(self):
         # pixel_samples is the total number of samples per pixel
