@@ -1,4 +1,5 @@
-"""Module to offer the thin lens modeled observer object."""
+"""Module providing the ThinLensCCDArray observer object, which models a thin lens imaging sensor.
+"""
 from __future__ import annotations
 
 from raysect.optical.observer.pipeline import RGBPipeline2D
@@ -14,48 +15,43 @@ __all__ = ["ThinLensCCDArray"]
 
 
 cdef class ThinLensCCDArray(Observer2D):
-    """
-    An ideal CCD-like imaging sensor that preferentially targets a thin lens circle.
+    """An ideal CCD-like imaging sensor that simulates a thin lens.
 
-    The targeted CCD is a regular array of square pixels. Each pixel samples red, green
-    and blue channels (behaves like a Foveon imaging sensor). The CCD sensor
-    width is specified with the width parameter. The CCD height is calculated
-    from the width and the number of vertical and horizontal pixels. The
-    default width and sensor ratio approximates a 35mm camera sensor.
+    The CCD is a regular array of square pixels. Each pixel samples red, green,
+    and blue channels (behaving like a Foveon imaging sensor). The sensor width
+    is set by the `width` parameter. The sensor height is calculated from the width
+    and the number of horizontal and vertical pixels. The default width and aspect
+    ratio approximate a 35mm camera sensor.
 
-    Each pixel will target the randomly sampled point inside the circle which is modeled as a thin lens.
-    The lens radius is calculated by the f-number and focal length.
-    The number of samples is pixel_samples multiplied by lens_samples, so total number of sampling rays
-    is taken as a pixel_samples in Observer2D object.
+    Each pixel targets a randomly sampled point within the lens circle, modeled as a thin lens.
+    The lens radius is determined by the f-number and focal length.
+    The total number of rays sampled per pixel is `per_pixel_samples` multiplied by `lens_samples`.
 
     Parameters
     ----------
     pixels : tuple
-        A tuple of pixel dimensions for the camera (default=(512, 512)).
+        Tuple specifying the pixel dimensions of the camera (default=(720, 480)).
     width : float
-        The CCD sensor x-width in metres (default=35mm).
+        The CCD sensor width in metres (default=35mm).
     focal_length : float
         The focal length in metres (default=10mm).
-        This value should be referenced from the lens specification.
+        This value should match the lens specification.
     working_distance : float
-        The working distance from lens to focus plane in metres (default=50.0cm).
+        The distance from the lens to the focus plane in metres (default=50cm).
     ccd_distance : float, optional
-        The distance between the CCD sensor and the lens, by default -1.
-        This is automatically calculated if `working_distance` is set.
-        When users specify the positive value, `working_distance` is re-calculated.
+        The distance between the CCD sensor and the lens (default: calculated from working_distance).
+        If specified, `working_distance` is recalculated.
     f_number : float
-        f-number (default=3.5).
+        The f-number of the lens (default=3.5).
     lens_samples : int
-        Number of samples to generate on the thin Lens (default=100).
+        Number of samples to generate on the thin lens (default=100).
     per_pixel_samples : int
         Number of samples to generate per pixel (default=10).
-        which is different from `pixel_samples` in :py:class:`~raysect.optical.observer.base.observer.Observer2D` object.
-        When you use ThinLensCCDArray, `pixel_samples` = `per_pixel_samples` x `lens_samples` (default=100 x 10).
+        The total number of rays per pixel is `per_pixel_samples` x `lens_samples`.
     pipelines : list
-        The list of pipelines that will process the spectrum measured
-        at each pixel by the camera (default= :py:class:`~raysect.optical.observer.pipeline.rgb.RGBPipeline2D`).
-    **kwargs : :py:class:`~raysect.optical.observer.base.observer.Observer2D` and _ObserverBase. properties, optional
-        *kwargs* are used to specify properties like a parent, transform, pipelines, etc.
+        List of pipelines to process the spectrum measured at each pixel (default: [RGBPipeline2D()]).
+    **kwargs : dict, optional
+        Additional properties for the observer, such as parent, transform, pipelines, etc.
     """
 
     cdef:
@@ -82,7 +78,7 @@ cdef class ThinLensCCDArray(Observer2D):
         pipelines=None
     ):
 
-        # initial values to prevent undefined behaviour when setting via self.width
+        # Set initial values to avoid undefined behaviour when setting via setters
         self._width = 0.035
         self._pixels = (720, 480)
         self._focal_length = focal_length
@@ -98,8 +94,7 @@ cdef class ThinLensCCDArray(Observer2D):
                          pixel_samples=self._lens_samples * self._per_pixel_samples,
                          parent=parent, transform=transform, name=name)
 
-        # setting width & focal_length trigger calculation of image geometry &
-        # lens geometry calculations, respectively.
+        # Setting width and focal_length triggers calculation of image and lens geometry
         self.width = width
         self.focal_length = focal_length
         if ccd_distance is not None:
@@ -107,8 +102,7 @@ cdef class ThinLensCCDArray(Observer2D):
 
     @property
     def pixels(self) -> tuple[int, int]:
-        """
-        Tuple describing the pixel dimensions for this observer (nx, ny), i.e. (512, 512).
+        """Tuple describing the pixel dimensions (nx, ny), e.g., (512, 512).
 
         :rtype: tuple[int, int]
         """
@@ -118,7 +112,7 @@ cdef class ThinLensCCDArray(Observer2D):
     def pixels(self, value):
         pixels = tuple(value)
         if len(pixels) != 2:
-            raise ValueError("Pixels must be a 2 element tuple defining the x and y resolution.")
+            raise ValueError("Pixels must be a 2-element tuple defining the x and y resolution.")
         x, y = pixels
         if x <= 0:
             raise ValueError("Number of x pixels must be greater than 0.")
@@ -129,8 +123,7 @@ cdef class ThinLensCCDArray(Observer2D):
 
     @property
     def width(self) -> float:
-        """
-        The CCD sensor x-width in metres.
+        """The CCD sensor width in metres.
 
         :rtype: float
         """
@@ -139,14 +132,13 @@ cdef class ThinLensCCDArray(Observer2D):
     @width.setter
     def width(self, width):
         if width <= 0:
-            raise ValueError("width can not be less than or equal to 0 meters.")
+            raise ValueError("Width must be greater than 0 metres.")
         self._width = width
         self._update_image_geometry()
 
     @property
     def pixel_area(self) -> float:
-        """
-        One pixel area in the CCD sensor
+        """Area of a single pixel on the CCD sensor.
 
         :rtype: float
         """
@@ -154,8 +146,7 @@ cdef class ThinLensCCDArray(Observer2D):
 
     @property
     def focal_length(self) -> float:
-        """
-        Focal length in metres.
+        """Focal length in metres.
 
         :rtype: float
         """
@@ -171,8 +162,7 @@ cdef class ThinLensCCDArray(Observer2D):
 
     @property
     def f_number(self) -> float:
-        """
-        f-number which defines the lens radius with focal length.
+        """The f-number, which defines the lens radius with the focal length.
 
         :rtype: float
         """
@@ -182,14 +172,13 @@ cdef class ThinLensCCDArray(Observer2D):
     def f_number(self, value):
         f_number = value
         if f_number <= 0:
-            raise ValueError("F value must be greater than 0.")
+            raise ValueError("F-number must be greater than 0.")
         self._f_number = f_number
         self._update_lens_geometry()
 
     @property
     def working_distance(self) -> float:
-        """
-        distance between the lens plane and focusing plane in metres.
+        """Distance between the lens plane and the focus plane in metres.
 
         :rtype: float
         """
@@ -205,8 +194,7 @@ cdef class ThinLensCCDArray(Observer2D):
 
     @property
     def ccd_distance(self) -> float:
-        """
-        distance between the CCD sensor and the lens in metres.
+        """Distance between the CCD sensor and the lens in metres.
 
         :rtype: float
         """
@@ -221,9 +209,8 @@ cdef class ThinLensCCDArray(Observer2D):
         self._update_lens_geometry()
 
     @property
-    def lens_radias(self) -> float:
-        """
-        Lens Radius in metres.
+    def lens_radius(self) -> float:
+        """Lens radius in metres.
 
         :rtype: float
         """
@@ -231,8 +218,7 @@ cdef class ThinLensCCDArray(Observer2D):
 
     @property
     def lens_samples(self) -> int:
-        """
-        The number of samples on lens.
+        """Number of samples on the lens.
 
         :rtype: int
         """
@@ -243,13 +229,11 @@ cdef class ThinLensCCDArray(Observer2D):
         if value <= 0:
             raise ValueError("The number of lens samples must be greater than 0.")
         self._lens_samples = value
-        self._update_lens_geometry()
         self._update_pixel_samples()
 
     @property
     def per_pixel_samples(self) -> int:
-        """
-        The number of samples to take per pixel.
+        """Number of samples to take per pixel.
 
         :rtype: int
         """
@@ -263,7 +247,6 @@ cdef class ThinLensCCDArray(Observer2D):
         self._update_pixel_samples()
 
     cdef object _update_image_geometry(self):
-
         self._image_delta = self._width / self._pixels[0]
         self._image_start_x = 0.5 * self._pixels[0] * self._image_delta
         self._image_start_y = 0.5 * self._pixels[1] * self._image_delta
@@ -271,7 +254,6 @@ cdef class ThinLensCCDArray(Observer2D):
         self._pixel_area = (self._width / self._pixels[0])**2
 
     cdef object _update_lens_geometry(self):
-
         self._lens_radius = 0.5 * self._focal_length / self._f_number
         if self._ccd_distance < 0.0:
             self._ccd_distance = 1 / (1 / self._focal_length - 1 / self._working_distance)
@@ -281,26 +263,28 @@ cdef class ThinLensCCDArray(Observer2D):
         self._lens_area = M_PI * self._lens_radius**2
 
     cdef object _update_pixel_samples(self):
-        # pixel_samples means total pixel samples in this case.
+        # pixel_samples is the total number of samples per pixel
         self.pixel_samples = self._per_pixel_samples * self._lens_samples
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
     cpdef list _generate_rays(self, int ix, int iy, Ray template, int ray_samples):
-        """
-        Generate a list of Rays that sample over the sensitivity of the pixel.
-        This method must return a list of tuples, with each tuple containing a Ray object and
-        a corresponding weighting, typically the projected area/direction cosine.
-        In this class, the weight will be:
+        """Generate a list of Rays that sample the sensitivity of a pixel.
+
+        Returns a list of tuples, each containing a Ray object and its corresponding weight,
+        typically the projected area/direction cosine.
+
+        The weight is calculated as:
 
         .. math::
 
             weight := \\frac{R^2\\cos^4\\theta}{2d^2},
 
-        where :math:`R` is the lens radius, :math:`\\theta` is the angle between a ray vector and
-        the normal vector to image sensor, and :math:`d` is the distance between the image sensor and the lens.
-        :math:`R` and :math:`d` are calculated as follows:
+        where :math:`R` is the lens radius, :math:`\\theta` is the angle between the ray vector and
+        the normal to the image sensor, and :math:`d` is the distance between the image sensor and
+        the lens.
+            :math:`R` and :math:`d` are calculated as:
 
         .. math::
 
@@ -308,7 +292,8 @@ cdef class ThinLensCCDArray(Observer2D):
 
                 d &= \\left(\\frac{1}{f} - \\frac{1}{W}\\right)^{-1}.
 
-        Where :math:`f` is the focal length, :math:`F` is the f-number, and :math:`W` is the working distance.
+        where :math:`f` is the focal length, :math:`F` is the f-number, and :math:`W` is the
+        working distance.
 
         Parameters
         ----------
@@ -316,16 +301,15 @@ cdef class ThinLensCCDArray(Observer2D):
             Pixel x index.
         iy : int
             Pixel y index.
-        template : :obj:`~raysect.optical.ray.Ray`
-            The template ray from which all rays should be generated.
+        template : Ray
+            The template ray from which all rays are generated.
         ray_samples : int
-            The number of rays to be generated. This is not used in this class.
-            The number of rays is determined by `.per_pixel_samples`
+            The number of rays to generate (not used; determined by per_pixel_samples).
 
         Returns
         -------
-        list[tuple[:obj:`~raysect.optical.ray.Ray`, float]]
-            A list of tuples of (ray, weight)
+        list[tuple[Ray, float]]
+            A list of (ray, weight) tuples.
         """
         cdef:
             double pixel_x, pixel_y, weight
@@ -334,36 +318,36 @@ cdef class ThinLensCCDArray(Observer2D):
             Vector3D pixel_direction, direction
             AffineMatrix3D pixel_to_local
 
-        # generate pixel transform
+        # Compute pixel transform
         pixel_x = self._image_start_x - self._image_delta * ix
         pixel_y = self._image_start_y - self._image_delta * iy
         pixel_to_local = translate(pixel_x, pixel_y, -1 * self._ccd_distance)
 
-        # generate origin points in pixel space
+        # Generate origin points in pixel space
         pixel_origins = self._pixel_sampler.samples(self._per_pixel_samples)
 
-        # assemble rays
+        # Assemble rays
         rays = []
         for pixel_origin in pixel_origins:
 
-            # transform to local space from pixel space
+            # Transform to local space from pixel space
             pixel_origin = pixel_origin.transform(pixel_to_local)
 
-            # generate origin points in lens space (which is equal to local space)
+            # Generate origin points in lens space (equal to local space)
             lens_origins = self._lens_sampler.samples(self._lens_samples)
 
             for lens_origin in lens_origins:
 
-                # generate direction from a sampled pixel point to a sampled lens point
+                # Generate direction from sampled pixel point to sampled lens point
                 pixel_direction = pixel_origin.vector_to(lens_origin)
                 pixel_direction = pixel_direction.normalise()
 
-                # generate ray direction from a sampled lens point (lens_origin)
+                # Generate ray direction from sampled lens point (lens_origin)
                 direction = pixel_origin.vector_to(Point3D(0, 0, 0)).normalise()
                 direction = lens_origin.vector_to(Point3D(0, 0, 0)) + direction * self._working_distance / direction.z
                 direction = direction.normalise()
 
-                # weight = 0.5 * lens_radias^2 * cos(theta)^4 * 1/image_distance^2
+                # weight = 0.5 * lens_radius^2 * cos(theta)^4 / ccd_distance^2
                 weight = 0.5 * self._lens_radius**2 * pixel_direction.z**4 / self._ccd_distance**2
 
                 rays.append((template.copy(lens_origin, direction), weight))
