@@ -18,7 +18,7 @@ SSH_RAYTRACE_USERNAME = "koyo"
 c-compiler = "*"
 
 [host-dependencies]
-python = ">=3.9"
+python = ">=3.10"
 hatch-cython = ">=0.6.0rc0"
 hatch-vcs = "*"
 numpy = "*"
@@ -101,8 +101,6 @@ build-wheel = { cmd = "python -m build -nx -w", description = "🔧 Build wheel 
 build-sdist = { cmd = "python -m build -nx -s", description = "🔧 Build source distribution" }
 
 # === Python Version Features ===
-[feature.py39.dependencies]
-python = "3.9.*"
 [feature.py310.dependencies]
 python = "3.10.*"
 [feature.py311.dependencies]
@@ -117,7 +115,6 @@ lint = { features = ["lint"], no-default-feature = true }
 build = { features = ["build"], no-default-feature = true }
 
 # For Test on Github actions
-py39 = { features = ["test", "py39"] }
 py310 = { features = ["test", "py310"] }
 py311 = { features = ["test", "py311"] }
 py312 = { features = ["test", "py312"] }
