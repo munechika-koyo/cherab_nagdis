@@ -28,7 +28,7 @@ pre-commit:
 
     - name: typos
       stage_fixed: true
-      run: pixi {run} typos --write-changes --force-exclude {staged_files}
+      run: pixi {run} typos --force-exclude {staged_files}
 
     - name: actionlint
       run: pixi {run} actionlint

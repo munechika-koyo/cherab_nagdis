@@ -85,6 +85,7 @@ actionlint = "*"
 validate-pyproject = "*"
 cython-lint = "*"
 docformatter = "*"
+blacken-docs = "*"
 
 [feature.lint.tasks]
 lefthook = { cmd = "lefthook", description = "🔗 Run lefthook" }
