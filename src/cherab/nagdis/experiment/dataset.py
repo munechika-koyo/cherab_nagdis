@@ -7,8 +7,7 @@ import numpy as np
 import wvfreader as wvf
 import xarray as xr
 from matplotlib import pyplot as plt
-
-from cherab.inversion.tools import Spinner
+from rich.console import Console
 
 __all__ = ["create_dataset"]
 
@@ -44,14 +43,11 @@ def create_dataset(
     video_fps : float, optional
         The video frame rate in Hz, by default 100 kHz.
     """
-    with Spinner("Creating dataset...", timer=True) as sp:
+    console = Console()
+    with console.status("[bold green]Creating dataset..."):
         # === Load the wvf file ===
-        sp.text = "Loading wvf file..."
-
         if wvf_path is None:
             wvf_path = Path(askopenfilename(title="Select the .wvf file"))
-
-        sp.text = f"Loading wvf file: {wvf_path.name}..."
         wvf_data = wvf.datafile(str(wvf_path))
         wvf_data = wvf_data[wvf_path.stem]
 
@@ -92,9 +88,9 @@ def create_dataset(
                 "date": wvf_data.date,
             },
         )
+        console.log(f"Loaded waveform data from {wvf_path}")
 
         # === Load the mask files ===
-        sp.text = "Loading image mask files..."
         if mask_dir is None:
             mask_dir = Path(
                 askdirectory(title="Select the mask directory including mask .npy files")
@@ -109,12 +105,12 @@ def create_dataset(
             mask = np.load(mask_file)
             masks[mask_file.stem] = mask
 
+        console.log(f"Loaded {len(masks)} mask files from {mask_dir}")
+
         # === Load the video files ===
-        sp.text = "Loading video files..."
         if video_dir is None:
             video_dir = Path(askdirectory(title="Select the video directory"))
 
-        sp.text = f"Loading video files from: {video_dir}..."
         video_files = sorted(video_dir.glob("*.tif"))
 
         # video time steps
@@ -148,7 +144,6 @@ def create_dataset(
             for port, mask in masks.items():
                 videos[port][i] = image[mask]
 
-        sp.text = "Creating video dataset..."
         ds_video = xr.Dataset(
             {
                 port: (
@@ -191,6 +186,7 @@ def create_dataset(
                 "video_dir": str(video_dir),
             },
         )
+        console.log(f"Loaded video data from {video_dir}")
 
         # Add CAD wireframe image
         if isinstance(wireframe_path, Path) and wireframe_path.exists():
@@ -203,34 +199,14 @@ def create_dataset(
                     )
                 }
             )
+            console.log(f"Loaded wireframe image from {wireframe_path}")
 
         # === Merge the datasets ===
-        sp.text = "Merging datasets..."
         ds_merged = xr.merge([ds, ds_video], combine_attrs="drop_conflicts")
 
         # === Save the dataset ===
         if save_path is not None:
-            sp.text = f"Saving the dataset as {save_path}..."
             ds_merged.to_netcdf(save_path, format="NETCDF4")
+            console.log(f"[Dataset saved to {save_path}")
 
-        sp.text = "Dataset created."
-        sp.ok()
         return ds_merged
-
-
-if __name__ == "__main__":
-    VIDEO_DATA = Path("/media/koyo/Extreme SSD/20240705/")
-    OBSERVER_DATA = Path(__file__).parents[1] / "observers" / "data"
-    MASK_DIR = OBSERVER_DATA / "mask20240705" / "w1280-h192"
-    WIREFRAME_PATH = OBSERVER_DATA / "wireframe_20240705_w1280_h192.npy"
-    SCCM = 000
-    WAVE = 589
-    GAIN = 44
-    ds = create_dataset(
-        wvf_path=Path(f"/media/koyo/Extreme SSD/20240705/waveform/{SCCM:>03}sccm/{WAVE}-1.wvf"),
-        video_dir=VIDEO_DATA / f"{SCCM:>03}sccm" / "videos" / f"G{GAIN}_{WAVE}",
-        mask_dir=MASK_DIR,
-        wireframe_path=WIREFRAME_PATH,
-        save_path=Path(f"sccm{SCCM:>03}_G{GAIN}_{WAVE}.nc"),
-    )
-    print(ds)
