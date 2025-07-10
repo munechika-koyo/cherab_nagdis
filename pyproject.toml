@@ -26,7 +26,6 @@ dependencies = [
   "scipy",
   "plotly",
   "cherab",
-  "cherab-inversion",
   "calcam",
   "pooch",
   "paramiko",
@@ -45,7 +44,6 @@ repository = "https://github.com/munechika-koyo/cherab_nagdis"
 source = "vcs"
 
 [tool.hatch.metadata.hooks.vcs]
-
 # ----------------------------
 # === Build/Package config ===
 # ----------------------------
@@ -115,7 +113,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"**/*.ipynb" = ["W292"]  # no newline at end of file
+"**/*.ipynb" = ["W292"] # no newline at end of file
 
 [tool.docformatter]
 recursive = true
@@ -125,7 +123,7 @@ blank = false
 
 [tool.numpydoc_validation]
 checks = [
-  "all",  # report on all checks, except the below
+  "all", # report on all checks, except the below
   "GL01", # Docstring text (summary) should start in the line immediately
   "EX01", # No examples section found
   "SA01", # See Also section not found

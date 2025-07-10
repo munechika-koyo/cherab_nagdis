@@ -1,4 +1,4 @@
-[project]
+[workspace]
 name = "cherab-nagdis"
 description = "Cherab for NAGDIS-II"
 authors = ["munechika-koyo <munechika.koyo@torus.nr.ttitech.ac.jp>"]
@@ -6,31 +6,8 @@ channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64", "osx-arm64", "osx-64"]
 
 [tasks]
-clean = { cmd = [
-    "find",
-    "src/",
-    "-type",
-    "f",
-    "\\(",
-    "-name",
-    "'*.c'",
-    "-o",
-    "-name",
-    "'*.so'",
-    "-o",
-    "-name",
-    "'*.dylib'",
-    "-o",
-    "-name",
-    "'*.html'",
-    "\\)",
-    "-delete",
-], description = "🔥 Remove build artifacts and temporary files (e.g. *.c, *.so, *.dylib, *.html)" }
-dataset = { cmd = [
-    "python",
-    "-c",
-    "'from experiment.dataset import create_dataset; create_dataset()'",
-], description = "Create dataset for the experiment"}
+clean = { cmd = ["find", "src/", "-type", "f", "\\(", "-name", "'*.c'", "-o", "-name", "'*.so'", "-o", "-name", "'*.dylib'", "-o", "-name", "'*.html'", "\\)", "-delete"], description = "🔥 Remove build artifacts and temporary files (e.g. *.c, *.so, *.dylib, *.html)" }
+dataset = { cmd = ["python", "-c", "'from experiment.dataset import create_dataset; create_dataset()'"], description = "Create dataset for the experiment" }
 ca = { cmd = "python scripts/ca.py", description = "Run Conditional & Moving Average of dataset" }
 
 [activation.env]
@@ -50,7 +27,6 @@ cherab = "*"
 [dependencies]
 calcam = "*"
 scipy = "*"
-cherab-inversion = "*"
 matplotlib = "*"
 plotly = "*"
 pooch = "*"
@@ -113,8 +89,7 @@ docformatter = "*"
 [feature.lint.tasks]
 lefthook = { cmd = "lefthook", description = "🔗 Run lefthook" }
 hooks = { cmd = "lefthook install", description = "🔗 Install pre-commit hooks" }
-lint = { cmd = ["ruff", "check"], description = "🧹 Lint the code" }
-format = { cmd = ["ruff", "format"], description = "🧹 Format the code" }
+lint = { cmd = "lefthook run pre-commit --all-files --force", description = "🧹 Run all linters" }
 
 [feature.build.dependencies]
 python-build = "*"
@@ -134,8 +109,8 @@ python = "3.11.*"
 python = "3.12.*"
 
 [environments]
-lab = { features = ["lab"], solve-group = "default"}
-test = { features = ["test"], solve-group = "default"}
+lab = { features = ["lab"], solve-group = "default" }
+test = { features = ["test"], solve-group = "default" }
 lint = { features = ["lint"], no-default-feature = true }
 build = { features = ["build"], no-default-feature = true }
 
