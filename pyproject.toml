@@ -7,7 +7,8 @@ name = "cherab-nagdis"
 description = "Cherab for NAGDIS-II"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
 keywords = ["cherab", "nagdis", "fusion", "plasma", "inversion"]
 authors = [{ name = "Koyo Munechika", email = "munechika.koyo@gmail.com" }]
 classifiers = [
@@ -48,11 +49,7 @@ source = "vcs"
 # ----------------------------
 [tool.hatch.build.targets.wheel]
 packages = ["src/cherab"]
-artifacts = [
-  "*.so",
-  "*.dll",
-  "*.dylib",
-]
+artifacts = ["*.so", "*.dll", "*.dylib"]
 exclude = ["*.pyx"]
 
 [tool.hatch.build.targets.wheel.hooks.cython]
