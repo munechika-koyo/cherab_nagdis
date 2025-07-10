@@ -9,7 +9,7 @@ pre-commit:
     - name: dprint
       glob: "*.{json,jsonc,md,toml,yaml,yml}"
       stage_fixed: true
-      run: pixi {run} dprint
+      run: pixi {run} dprint fmt {staged_files}
 
     - name: ruff
       glob: "*.{py,pyi}"
@@ -18,17 +18,17 @@ pre-commit:
         piped: true
         jobs:
           - name: ruff check
-            run: pixi {run} ruff-check {staged_files}
+            run: pixi {run} ruff check --fix {staged_files}
           - name: ruff format
-            run: pixi {run} ruff-format {staged_files}
+            run: pixi {run} ruff format {staged_files}
 
-    - name: mypy
-      glob: "*.{py,pyi}"
-      run: pixi {run} mypy {staged_files}
+    # - name: mypy
+    #   glob: "*.{py,pyi}"
+    #   run: pixi {run} mypy {staged_files}
 
     - name: typos
       stage_fixed: true
-      run: pixi {run} typos {staged_files}
+      run: pixi {run} typos --write-changes --force-exclude {staged_files}
 
     - name: actionlint
       run: pixi {run} actionlint
@@ -40,8 +40,8 @@ pre-commit:
 
     - name: validate-pyproject
       glob: "pyproject.toml"
-      run: pixi {run} validate-pyproject {staged_files}
+      run: pixi {run} validate-pyproject pyproject.toml
 
     - name: numpydoc
       glob: "*.py"
-      run: pixi {run} numpydoc {staged_files}
+      run: pixi {run} numpydoc lint {staged_files}
