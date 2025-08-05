@@ -1,5 +1,10 @@
 [build-system]
-requires = ["hatchling", "hatch-cython>=0.6.0rc0", "hatch-vcs", "raysect"]
+requires = [
+  "hatchling",
+  "hatch-cython>=0.6.0rc0",
+  "hatch-vcs",
+  "raysect>=0.9.0,<0.10",
+]
 build-backend = "hatchling.build"
 
 [project]
@@ -17,7 +22,6 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: Implementation :: CPython",
 ]
 dependencies = [
@@ -25,6 +29,7 @@ dependencies = [
   "matplotlib",
   "scipy",
   "plotly",
+  "raysect>=0.9.0,<0.10",
   "cherab",
   "calcam",
   "pooch",
