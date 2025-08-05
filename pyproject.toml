@@ -124,7 +124,7 @@ blank = false
 
 [tool.numpydoc_validation]
 checks = [
-  "all", # report on all checks, except the below
+  "all",  # report on all checks, except the below
   "GL01", # Docstring text (summary) should start in the line immediately
   "EX01", # No examples section found
   "SA01", # See Also section not found
