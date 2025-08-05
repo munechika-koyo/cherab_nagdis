@@ -31,7 +31,8 @@ pre-commit:
       run: pixi {run} typos --force-exclude {staged_files}
 
     - name: actionlint
-      run: pixi {run} actionlint
+      glob: ".github/workflows/*.yaml"
+      run: pixi {run} actionlint {staged_files}
 
     - name: blacken-docs
       glob: "*.md"
@@ -45,3 +46,12 @@ pre-commit:
     - name: numpydoc
       glob: "*.py"
       run: pixi {run} numpydoc lint {staged_files}
+
+    - name: cython-lint
+      glob: "*.{pyx,pxd}"
+      run: pixi {run} cython-lint {staged_files}
+
+    - name: docformatter
+      glob: "*.{py,pyi,pyx}"
+      stage_fixed: true
+      run: pixi {run} docformatter --in-place {staged_files}
