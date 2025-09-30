@@ -114,14 +114,17 @@ def create_dataset(
         video_files = sorted(video_dir.glob("*.tif"))
 
         # video time steps
+        # NOTE: we assume the video start time is when II_gate first exceeds 2.0 V
+        # After that, photons are captured during the I.I.'s exposure time.
+        # Ignoring I.I.'s gate delay time (~100 ns).
         t0 = (
             ds["II_gate"]
             .where(ds["II_gate"] > 2.0, drop=True)
             .where(ds["time"] > 0, drop=True)
             .time[0]
         )
-        dt = 1 / video_fps
-        t0 += 0.5 * dt  # start from the middle of the first frame
+
+        # Set the video time steps
         time = np.linspace(t0, t0 + len(video_files) / video_fps, len(video_files))
 
         # Trim the dataset to match the video time steps
@@ -207,6 +210,6 @@ def create_dataset(
         # === Save the dataset ===
         if save_path is not None:
             ds_merged.to_netcdf(save_path, format="NETCDF4")
-            console.log(f"[Dataset saved to {save_path}")
+            console.log(f"Dataset saved to {save_path}")
 
         return ds_merged
