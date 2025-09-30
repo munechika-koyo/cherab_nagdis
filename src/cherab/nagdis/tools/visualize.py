@@ -327,6 +327,9 @@ def add_inner_title(
     loc: str = "upper left",
     size: float = plt.rcParams["legend.fontsize"],
     borderpad: float = 0.5,
+    stroke_width: float = 3,
+    color: str = "black",
+    color_stroke: str = "white",
     **kwargs,
 ):
     """Add inner title to the axes.
@@ -353,7 +356,11 @@ def add_inner_title(
     `~matplotlib.offsetbox.AnchoredText`
         AnchoredText object.
     """
-    prop = dict(path_effects=[withStroke(linewidth=3, foreground="w")], size=size)
+    prop = dict(
+        path_effects=[withStroke(linewidth=stroke_width, foreground=color_stroke)],
+        size=size,
+        color=color,
+    )
     at = AnchoredText(
         title, loc=loc, prop=prop, pad=0.0, borderpad=borderpad, frameon=False, **kwargs
     )
