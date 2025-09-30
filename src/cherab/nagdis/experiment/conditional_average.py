@@ -24,11 +24,11 @@ class ConditionalAverage:
     """
 
     def __init__(self, path: Path | str, dt: float) -> None:
-        self.path = path
-        self.dt = dt
+        self.path: Path = Path(path)
+        self.dt: float = dt
 
         # Load dataset
-        self.ds = xr.open_dataset(path)
+        self.ds: xr.Dataset = xr.open_dataset(path)
 
     def get_peaks_time(
         self,
@@ -92,7 +92,16 @@ class ConditionalAverage:
 
             f_\\mathrm{avg}(\\tau) = \\frac{1}{\\#T^{(\\tau)}}\\sum_{t \\in T^{(\\tau)}} f(t + \\tau),
 
-            T^{(\\tau)} \\equiv \\{t' \\equiv t_\\mathrm{peak} + \\tau \\mid t_\\mathrm{peak}\\in T_\\mathrm{peak} \\land t' \\in T_\\mathrm{video}\\},
+            T^{(\\tau)}
+                \\equiv
+                \\left\\{
+                    t' \\in T_\\mathrm{video}
+                    \\middle |
+                    \\begin{gathered}
+                        t' = t_\\mathrm{peak} + \\tau\\\\
+                        t_\\mathrm{peak} \\in T_\\mathrm{peak}
+                    \\end{gathered}
+                \\right\\},
 
         where :math:`\\tau \\in \\{-\\Delta t, -\\Delta t + \\Delta \\tau, \\ldots, \\Delta t\\}`,
         :math:`T_\\mathrm{peak}` is the set of peak times from the waveform signal, and
