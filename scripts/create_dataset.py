@@ -3,32 +3,36 @@
 
 from pathlib import Path
 
-from cherab.nagdis.experiment.dataset import create_dataset
+from cherab.nagdis.experiment import create_dataset
 
 # %%
 # Define paths
 # -------------------------------------------------------
-# Video data directory where the TIFF files are stored.
-VIDEO_DATA = Path("/media/koyo/Extreme SSD/20240705/")
-
-# Observer data directory where
-OBSERVER_DATA = Path(__file__).parents[1] / "observers" / "data"
-MASK_DIR = OBSERVER_DATA / "mask20240705" / "w1280-h192"
-WIREFRAME_PATH = OBSERVER_DATA / "wireframe_20240705_w1280_h192.npy"
+ROOT = Path(__file__).parents[1] / "output"
+EXPERIMENT = ROOT / "experimental" / "20240703"
+VIDEO_DIR = EXPERIMENT / "videos"
+WAVEFORM_DIR = EXPERIMENT / "waveform"
+MASK_DIR = ROOT / "camera_calibration" / "mask20240705" / "w1280-h192"
+WIREFRAME_PATH = ROOT / "camera_calibration" / "wireframe_20240705_w1280_h192.npy"
 
 # %%
 # Create dataset
 # -------------------------------------------------------
 # Parameters for dataset creation
 SCCM = 430
-WAVE = 589
-GAIN = 44
+gain_waves = [
+    (32, 589),
+    (40, 450),
+    (53, 405),
+    (87, 372),
+]
 
-ds = create_dataset(
-    wvf_path=Path(f"/media/koyo/Extreme SSD/20240705/waveform/{SCCM:>03}sccm/{WAVE}-1.wvf"),
-    video_dir=VIDEO_DATA / f"{SCCM:>03}sccm" / "videos" / f"G{GAIN}_{WAVE}",
-    mask_dir=MASK_DIR,
-    wireframe_path=WIREFRAME_PATH,
-    save_path=Path(f"sccm{SCCM:>03}_G{GAIN}_{WAVE}.nc"),
-)
-print(ds)
+for gain, wave in gain_waves:
+    ds = create_dataset(
+        wvf_path=WAVEFORM_DIR / f"{SCCM:>03}sccm" / f"{wave:>03}-1.wvf",
+        video_dir=VIDEO_DIR / "videos" / f"G{gain}_{wave}",
+        mask_dir=MASK_DIR,
+        wireframe_path=WIREFRAME_PATH,
+        save_path=ROOT / f"sccm{SCCM:>03}_G{gain}_{wave}.nc",
+    )
+    print(f"Dataset created and saved to (SCCM: {SCCM:>03}, Gain: {gain:>02}, Wave: {wave:>03})")
