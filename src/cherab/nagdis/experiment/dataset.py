@@ -126,6 +126,8 @@ def create_dataset(
             video_dir = Path(askdirectory(title="Select the video directory"))
 
         video_files = sorted(video_dir.glob("*.tif"))
+        if len(video_files) == 0:
+            raise FileNotFoundError(f"No .tif files found in {video_dir}")
 
         # video time steps
         # NOTE: we assume the video start time is when II_gate first exceeds 2.0 V
@@ -137,7 +139,7 @@ def create_dataset(
             .where(ds["time"] > 0, drop=True)
             .time[0]
             .data.item()
-        ) * _TO_MICROSECOND
+        )
 
         # Set the video time steps
         _dt: int = round(_TO_MICROSECOND / video_fps)  # time step in µs

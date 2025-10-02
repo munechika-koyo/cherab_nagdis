@@ -28,11 +28,11 @@ gain_waves = [
 ]
 
 for gain, wave in gain_waves:
+    print(f"Creating dataset (SCCM: {SCCM:>03}, Gain: {gain:>02}, Wave: {wave:>03})...")
     ds = create_dataset(
         wvf_path=WAVEFORM_DIR / f"{SCCM:>03}sccm" / f"{wave:>03}-1.wvf",
-        video_dir=VIDEO_DIR / "videos" / f"G{gain}_{wave}",
+        video_dir=VIDEO_DIR / f"G{gain}_{wave}",
         mask_dir=MASK_DIR,
         wireframe_path=WIREFRAME_PATH,
         save_path=ROOT / f"sccm{SCCM:>03}_G{gain}_{wave}.nc",
     )
-    print(f"Dataset created and saved to (SCCM: {SCCM:>03}, Gain: {gain:>02}, Wave: {wave:>03})")
