@@ -189,7 +189,7 @@ class ConditionalAverage:
 
             # Average the signal dataset using video times
             ds_avg_signal.loc[dict(tau=tau)] = ds_signal.reindex(
-                time=_d["time_video"], method=None
+                time=_d["time_video"].data, method=None
             ).mean(dim="time")
 
         # Update the dataset
