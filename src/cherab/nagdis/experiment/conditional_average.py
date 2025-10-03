@@ -84,7 +84,9 @@ class ConditionalAverage:
 
         return signal_trimmed.time[peak_indices].values
 
-    def average_per_tau(self, peak_times, d_tau: int, tau_eps: float | None = None) -> xr.Dataset:
+    def average_per_tau(
+        self, peak_times: ArrayLike, d_tau: int, tau_eps: float | None = None
+    ) -> xr.Dataset:
         """Average the dataset per tau.
 
         Average the data :math:`f(t)` like:
@@ -125,7 +127,7 @@ class ConditionalAverage:
         xarray.Dataset
             Averaged dataset.
         """
-        tau_eps = d_tau if tau_eps is None else tau_eps * 0.5
+        tau_eps = d_tau * 0.5 if tau_eps is None else tau_eps
         taus = np.linspace(-self.dt, self.dt, round(2 * self.dt / d_tau) + 1, endpoint=True)
 
         # Create empty dataset
@@ -177,7 +179,11 @@ class ConditionalAverage:
             times = peak_times + tau
 
             # Average the video dataset and count the number of non-NaN values
-            _d = ds_video.reindex(time_video=times, method="nearest", tolerance=tau_eps)
+            _d = ds_video.reindex(
+                time_video=times,
+                method="nearest",
+                tolerance=tau_eps,
+            ).dropna(dim="time_video")
             ds_avg_video.loc[dict(tau_video=tau)] = _d.mean(dim="time_video")
             samples[i] = _d.count(dim="time_video")["port-1"][0].item()
 
