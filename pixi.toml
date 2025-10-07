@@ -1,10 +1,10 @@
 [workspace]
-name = "cherab-nagdis"
-description = "Cherab for NAGDIS-II"
-authors = ["munechika-koyo <munechika.koyo@torus.nr.ttitech.ac.jp>"]
 channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64", "osx-arm64", "osx-64"]
 
+# ---------------------------------
+# === Development Configuration ===
+# ---------------------------------
 [tasks]
 clean = { cmd = [
   "find",
@@ -32,6 +32,7 @@ dataset = { cmd = [
   "'from experiment.dataset import create_dataset; create_dataset()'",
 ], description = "Create dataset for the experiment" }
 ca = { cmd = "python scripts/ca.py", description = "Run Conditional & Moving Average of dataset" }
+lab = { cmd = "jupyter lab --notebook-dir notebooks/", description = "🚀 Launch Jupyter Lab" }
 
 [activation.env]
 SSH_RAYTRACE_HOSTNAME = "sftp://133.6.100.44/home/koyo/cherab/nagdis/"
@@ -41,7 +42,6 @@ SSH_RAYTRACE_USERNAME = "koyo"
 c-compiler = "*"
 
 [host-dependencies]
-python = ">=3.10"
 hatch-cython = ">=0.6.0rc0"
 hatch-vcs = "*"
 numpy = "*"
@@ -62,14 +62,7 @@ xarray = "*"
 netcdf4 = "*"
 ffmpeg = "*"
 
-[pypi-dependencies]
-wvfreader = "*"
-cherab-nagdis = { path = ".", editable = true }
-
-[pypi-options]
-no-build-isolation = ["cherab-nagdis"]
-
-[feature.lab.dependencies]
+# For JupyterLab and interactive plots
 ipykernel = "*"
 ipywidgets = "*"
 jupyterlab = "*"
@@ -83,26 +76,77 @@ firefox = "*"
 astroquery = ">=0.4.10,<0.5"
 lmfit = ">=1.3.3,<2"
 
-[feature.lab.tasks.lab]
-cmd = "jupyter lab --notebook-dir notebooks/"
-description = "🚀 Launch Jupyter Lab"
+[pypi-dependencies]
+wvfreader = "*"
+cherab-nagdis = { path = ".", editable = true }
 
-[feature.test.dependencies]
+[pypi-options]
+no-build-isolation = ["cherab-nagdis"]
+
+# === Testing feature ===
+[feature.tests.dependencies]
 pytest = "*"
 pytest-cov = "*"
 
-[feature.test.pypi-dependencies]
+[feature.tests.pypi-dependencies]
 pytest-github-report = "*"
 
-[feature.test.tasks]
+[feature.tests.tasks]
 test = { cmd = ["pytest", "tests"], description = "🧪 Run the tests" }
 
+# === Documentation feature ===
+[feature.docs.dependencies]
+ipykernel = "*"
+ipywidgets = "*"
+nbconvert = "*"
+nbsphinx = "*"
+numpydoc = "*"
+pillow = "*"
+pygments = ">2.11.0"
+sphinx = "*"
+sphinx-copybutton = "*"
+pydata-sphinx-theme = "*"
+sphinx-design = "*"
+pandoc = "*"
+sphinx-codeautolink = "*"
+python-kaleido = "*"
+myst-parser = "*"
+
+[feature.docs.pypi-dependencies]
+sphinx-github-style = "*"
+
+[feature.docs.tasks]
+doc-build = { cmd = [
+  "sphinx-build",
+  "-b",
+  "{{ target }}",
+  "source",
+  "build/{{ target }}",
+], cwd = "docs", args = [
+  { arg = "target", default = "html" },
+], description = "📝 Build the docs" }
+doc-clean = { cmd = [
+  "rm",
+  "-rf",
+  "build",
+], cwd = "docs", description = "🔥 Clean the docs build directory" }
+doc-serve = { cmd = [
+  "python",
+  "-m",
+  "http.server",
+  "8000",
+  "--directory",
+  "build/html",
+], cwd = "docs", description = "🚀 Start a local server for the docs" }
+
+# === Linting feature ===
 [feature.lint.dependencies]
 dprint = "*"
 lefthook = "*"
 ruff = "*"
 typos = "*"
 mypy = "*"
+basedpyright = "*"
 numpydoc = "*"
 actionlint = "*"
 shellcheck = "*"
@@ -116,6 +160,19 @@ taplo = "*"
 lefthook = { cmd = "lefthook", description = "🔗 Run lefthook" }
 hooks = { cmd = "lefthook install", description = "🔗 Install pre-commit hooks" }
 pre-commit = { cmd = "lefthook run pre-commit", description = "🔗 Run pre-commit checks" }
+mypy = { cmd = "mypy", description = "Type check with mypy" }
+pyright = { cmd = "basedpyright", description = "Type check with basedpyright" }
+ruff-check = { cmd = "ruff check --fix", description = "Lint with ruff" }
+ruff-format = { cmd = "ruff format", description = "Format with ruff" }
+dprint = { cmd = "dprint fmt", description = "Format with dprint" }
+typos = { cmd = "typos --write-changes --force-exclude", description = "Fix typos" }
+taplo = { cmd = "taplo fmt", description = "Format toml files with taplo" }
+actionlint = { cmd = "actionlint", description = "Lint actions with actionlint" }
+blacken-docs = { cmd = "blacken-docs", description = "Format Python markdown blocks with Black" }
+validate-pyproject = { cmd = "validate-pyproject pyproject.toml", description = "Validate pyproject.toml" }
+numpydoc = { cmd = "numpydoc lint", description = "Validate docstrings with numpydoc" }
+docformatter = { cmd = "docformatter --in-place", description = "Format docstrings with docformatter" }
+cython-lint = { cmd = "cython-lint", description = "Lint Cython files" }
 lint = { cmd = "lefthook run pre-commit --all-files --force", description = "🧹 Run all linters" }
 
 [feature.build.dependencies]
@@ -128,18 +185,17 @@ build-sdist = { cmd = "python -m build -nx -s", description = "🔧 Build source
 # === Python Version Features ===
 [feature.py310.dependencies]
 python = "3.10.*"
-[feature.py311.dependencies]
-python = "3.11.*"
 [feature.py312.dependencies]
 python = "3.12.*"
 
 [environments]
-lab = { features = ["lab"], solve-group = "default" }
-test = { features = ["test"], solve-group = "default" }
+default = { features = ["py312"], solve-group = "py312" }
+docs = { features = ["py312", "docs"], solve-group = "py312" }
+tests = { features = ["py312", "tests"], solve-group = "py312" }
+tests-py312 = { features = [
+  "py312",
+  "tests",
+], solve-group = "py312" } # alias of tests
+tests-py310 = ["py310", "tests"]
 lint = { features = ["lint"], no-default-feature = true }
 build = { features = ["build"], no-default-feature = true }
-
-# For Test on Github actions
-py310 = { features = ["test", "py310"] }
-py311 = { features = ["test", "py311"] }
-py312 = { features = ["test", "py312"] }
