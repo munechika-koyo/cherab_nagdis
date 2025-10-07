@@ -139,3 +139,26 @@ exclude = [ # don't report on objects that match any of these regex
   '\.__repr__$',
 ]
 override_SS05 = ['^Process ', '^Assess ', '^Access ']
+
+# ------------------------------
+# === Type checking settings ===
+# ------------------------------
+[tool.mypy]
+files = ["src", "tests"]
+warn_unused_configs = true
+strict = true
+enable_error_code = ["ignore-without-code", "truthy-bool"]
+disable_error_code = ["no-any-return"]
+
+[tool.basedpyright]
+include = ["src", "tests"]
+pythonPlatform = "All"
+typeCheckingMode = "all"
+reportMissingTypeStubs = true
+
+# no raysect/cherab type stubs; pytest fixtures
+reportUnknownMemberType = false
+reportUnknownVariableType = false
+
+# ruff handles this
+reportUnusedParameter = false
