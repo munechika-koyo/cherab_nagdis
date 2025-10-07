@@ -184,13 +184,13 @@ class ConditionalAverage:
                 method="nearest",
                 tolerance=tau_eps,
             ).dropna(dim="time_video")
-            ds_avg_video.loc[dict(tau_video=tau)] = _d.mean(dim="time_video")
+            ds_avg_video.loc[dict(tau_video=tau)] = _d.mean(dim="time_video", skipna=True)
             samples[i] = _d.count(dim="time_video")["port-1"][0].item()
 
             # Average the signal dataset using video times
             ds_avg_signal.loc[dict(tau=tau)] = ds_signal.reindex(
                 time=_d["time_video"].data, method=None
-            ).mean(dim="time")
+            ).mean(dim="time", skipna=True)
 
         # Update the dataset
         ds_avg.update(ds_avg_signal)
