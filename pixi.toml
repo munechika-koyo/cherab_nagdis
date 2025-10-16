@@ -7,7 +7,7 @@ preview = ["pixi-build"]
 # === Packaging Configuration ===
 # -------------------------------
 [package]
-version = "0.1.1" # this will be overridden by setuptools-scm
+version = "dynamic"
 
 [package.build]
 backend = { name = "pixi-build-python", version = "*" }
@@ -15,7 +15,6 @@ backend = { name = "pixi-build-python", version = "*" }
 [package.build.config]
 noarch = false
 compilers = ["c"]
-env = { SETUPTOOLS_SCM_PRETEND_VERSION = "0.1.1" }
 
 [workspace.build-variants]
 python = ["3.10.*", "3.11.*", "3.12.*"]
