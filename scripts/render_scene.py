@@ -77,7 +77,7 @@ if hasattr(camera, "per_pixel_samples"):
 # %%
 # Create xarray Dataset
 # ---------------------
-# xr.Datset is used to store calculated data
+# xr.Dataset is used to store calculated data
 ds = xr.Dataset()
 
 # %%

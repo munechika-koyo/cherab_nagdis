@@ -49,6 +49,7 @@ repository = "https://github.com/munechika-koyo/cherab_nagdis"
 source = "vcs"
 
 [tool.hatch.metadata.hooks.vcs]
+
 # ----------------------------
 # === Build/Package config ===
 # ----------------------------
@@ -70,7 +71,7 @@ compile_py = false
 targets = ["**/*.pyx"]
 
 [tool.cibuildwheel]
-skip = "pp* *_ppc64le *_i686 *_s390x *-musllinux* cp39-* cp313-*"
+skip = "pp* *_ppc64le *_i686 *_s390x *-musllinux* cp39-* cp313-* cp314-*"
 build-frontend = "build[uv]"
 test-requires = ["pytest", "pytest-cov"]
 test-command = "pytest {project}/tests"
