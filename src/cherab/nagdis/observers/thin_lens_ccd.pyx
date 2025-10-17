@@ -1,4 +1,7 @@
-"""Module providing the ThinLensCCDArray observer object, which models a thin lens imaging sensor.
+"""Module providing a thin lens imaging sensor observer object.
+
+This module defines the ThinLensCCDArray observer, which simulates an ideal CCD-like imaging sensor
+using a thin lens model.
 """
 from __future__ import annotations
 
