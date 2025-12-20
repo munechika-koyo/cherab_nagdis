@@ -1,7 +1,6 @@
 [build-system]
 requires = [
-  "hatchling",
-  "hatch-cython>=0.6.0rc0",
+  "hatch-cython>=0.6.0",
   "hatch-vcs",
   "raysect>=0.9.0,<0.10",
 ]
