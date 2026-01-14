@@ -67,13 +67,22 @@ ds_ca = xr.open_dataset(path_to_ca)
 
 ds = xr.Dataset(
     data_vars=dict(
-        to_yz=(
-            ["port", "y", "x"],
+        to_y=(
+            ["port", "height", "width"],
             np.full((5, ds_ca.height.size, ds_ca.width.size), np.nan, dtype=float),
             dict(
-                long_name="y-z coordinates",
+                long_name="y coordinates",
                 units="m",
-                description="y-z coordinates at x=0 plane",
+                description="y coordinates at x=0 plane for each pixel",
+            ),
+        ),
+        to_z=(
+            ["port", "height", "width"],
+            np.full((5, ds_ca.height.size, ds_ca.width.size), np.nan, dtype=float),
+            dict(
+                long_name="z coordinates",
+                units="m",
+                description="z coordinates at x=0 plane for each pixel",
             ),
         ),
     ),
@@ -93,16 +102,26 @@ for port in ds.port.data:
 
     for iy, ix in zip(pixel_rows, pixel_cols, strict=True):
         origin, hit_point = ray_paths(ix, iy)
-        ds["to_yz"][port - 1, iy, ix] = hit_point.z
+        ds["to_y"][port - 1, iy, ix] = hit_point.z
+        ds["to_z"][port - 1, iy, ix] = hit_point.y
 
 ds = ds.assign(
-    to_y=(
-        ["port", "y"],
-        ds.to_yz.mean(dim="x").data,
+    to_y_avg=(
+        ["port", "height"],
+        ds.to_y.mean(dim="width").data,
         dict(
             long_name="y-coordinate",
             units="m",
             description="y coordinate at x=0 plane, averaged along z-axis",
+        ),
+    ),
+    to_z_avg=(
+        ["port", "height"],
+        ds.to_z.mean(dim="width").data,
+        dict(
+            long_name="z-coordinate",
+            units="m",
+            description="z coordinate at x=0 plane, averaged along y-axis",
         ),
     ),
 )
