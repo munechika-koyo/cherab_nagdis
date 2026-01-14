@@ -116,8 +116,8 @@ ds = ds.assign(
         ),
     ),
     to_z_avg=(
-        ["port", "height"],
-        ds.to_z.mean(dim="width").data,
+        ["port", "width"],
+        ds.to_z.mean(dim="height").data,
         dict(
             long_name="z-coordinate",
             units="m",
