@@ -19,16 +19,17 @@ class ConditionalAverage:
     ----------
     path : Path | str
         Path to the dataset.
-    dt : float
+    dt : int
         Time range to perform the conditional average (:math:`\\pm\\Delta t` around the peaked time).
+        The unit is in microseconds [µs].
     """
 
-    def __init__(self, path: Path | str, dt: float) -> None:
-        self.path = path
-        self.dt = dt
+    def __init__(self, path: Path | str, dt: int) -> None:
+        self.path: Path = Path(path)
+        self.dt: int = dt
 
         # Load dataset
-        self.ds = xr.open_dataset(path)
+        self.ds: xr.Dataset = xr.open_dataset(path)
 
     def get_peaks_time(
         self,
@@ -54,7 +55,7 @@ class ConditionalAverage:
         Returns
         -------
         numpy.ndarray
-            Time of peaks.
+            Time of peaks in microseconds [µs].
         """
         # Get time of peaks
         end_time = self.ds.time[-1].values
@@ -83,7 +84,9 @@ class ConditionalAverage:
 
         return signal_trimmed.time[peak_indices].values
 
-    def average_per_tau(self, peak_times, d_tau: float, tau_eps: float | None = None) -> xr.Dataset:
+    def average_per_tau(
+        self, peak_times: ArrayLike, d_tau: int, tau_eps: float | None = None
+    ) -> xr.Dataset:
         """Average the dataset per tau.
 
         Average the data :math:`f(t)` like:
@@ -92,7 +95,16 @@ class ConditionalAverage:
 
             f_\\mathrm{avg}(\\tau) = \\frac{1}{\\#T^{(\\tau)}}\\sum_{t \\in T^{(\\tau)}} f(t + \\tau),
 
-            T^{(\\tau)} \\equiv \\{t' \\equiv t_\\mathrm{peak} + \\tau \\mid t_\\mathrm{peak}\\in T_\\mathrm{peak} \\land t' \\in T_\\mathrm{video}\\},
+            T^{(\\tau)}
+                \\equiv
+                \\left\\{
+                    t' \\in T_\\mathrm{video}
+                    \\middle |
+                    \\begin{gathered}
+                        t' = t_\\mathrm{peak} + \\tau\\\\
+                        t_\\mathrm{peak} \\in T_\\mathrm{peak}
+                    \\end{gathered}
+                \\right\\},
 
         where :math:`\\tau \\in \\{-\\Delta t, -\\Delta t + \\Delta \\tau, \\ldots, \\Delta t\\}`,
         :math:`T_\\mathrm{peak}` is the set of peak times from the waveform signal, and
@@ -104,17 +116,18 @@ class ConditionalAverage:
         ----------
         peak_times : array_like
             Set of peak times :math:`T_\\mathrm{peak}`.
-        d_tau : float
-            Time interval of tau :math:`\\Delta \\tau`.
+        d_tau : int
+            Time interval of tau :math:`\\Delta \\tau`, in microseconds [µs].
         tau_eps : float, optional
-            Tolerance of video dataset time to match with signal dataset time, by default `d_tau`.
+            Tolerance of video dataset time to match with signal dataset time,
+            by default `d_tau * 0.5`.
 
         Return
         ------
         xarray.Dataset
             Averaged dataset.
         """
-        tau_eps = d_tau if tau_eps is None else tau_eps
+        tau_eps = d_tau * 0.5 if tau_eps is None else tau_eps
         taus = np.linspace(-self.dt, self.dt, round(2 * self.dt / d_tau) + 1, endpoint=True)
 
         # Create empty dataset
@@ -127,8 +140,8 @@ class ConditionalAverage:
             .rename(time="tau")
             .rename(time_video="tau_video")
         )
-        ds_avg.coords["tau"].attrs["units"] = "s"
-        ds_avg.coords["tau_video"].attrs["units"] = "s"
+        ds_avg.coords["tau"].attrs["units"] = "µs"
+        ds_avg.coords["tau_video"].attrs["units"] = "µs"
 
         # Drop variables that does not have tau or tau_video as dimension
         ds_avg = ds_avg.drop_vars(
@@ -165,15 +178,19 @@ class ConditionalAverage:
         for i, tau in enumerate(taus):
             times = peak_times + tau
 
-            # Average the signal dataset
-            ds_avg_signal.loc[dict(tau=tau)] = ds_signal.reindex(time=times, method=None).mean(
-                dim="time"
-            )
-
             # Average the video dataset and count the number of non-NaN values
-            _d = ds_video.reindex(time_video=times, method="nearest", tolerance=tau_eps)
-            ds_avg_video.loc[dict(tau_video=tau)] = _d.mean(dim="time_video")
+            _d = ds_video.reindex(
+                time_video=times,
+                method="nearest",
+                tolerance=tau_eps,
+            ).dropna(dim="time_video")
+            ds_avg_video.loc[dict(tau_video=tau)] = _d.mean(dim="time_video", skipna=True)
             samples[i] = _d.count(dim="time_video")["port-1"][0].item()
+
+            # Average the signal dataset using video times
+            ds_avg_signal.loc[dict(tau=tau)] = ds_signal.reindex(
+                time=_d["time_video"].data, method=None
+            ).mean(dim="time", skipna=True)
 
         # Update the dataset
         ds_avg.update(ds_avg_signal)
@@ -233,7 +250,8 @@ class ConditionalAverage:
         peak_time : array_like
             Set of peak times :math:`T_\\mathrm{peak}`.
         time_eps : float, optional
-            Tolerance of peak time corresponding video time, by default `0.5 * d_t`.
+            Tolerance of peak time corresponding video time, by default the half of the time step of
+            the signal dataset.
 
         Returns
         -------
@@ -268,8 +286,8 @@ class ConditionalAverage:
             .rename(time="tau")
             .rename(time_video="tau_video")
         )
-        ds_avg.coords["tau"].attrs["units"] = "s"
-        ds_avg.coords["tau_video"].attrs["units"] = "s"
+        ds_avg.coords["tau"].attrs["units"] = "µs"
+        ds_avg.coords["tau_video"].attrs["units"] = "µs"
 
         # Drop variables that does not have tau or tau_video as dimension
         ds_avg = ds_avg.drop_vars(
@@ -348,7 +366,7 @@ class ConditionalAverage:
     def create_images(ds: xr.Dataset, time_name: str = "tau") -> xr.DataArray:
         """Create images from the dataset.
 
-        This function is a proxy for the `create_images` function in the `utils` module.
+        This function is a proxy for the `create_images` function in the `.utils` module.
         """
         return create_images(ds, time_name)
 

@@ -2,12 +2,17 @@ name: CI
 
 on:
   pull_request:
-    branches: [main]
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
   push:
     branches: [main]
 
 jobs:
   lint:
+    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
     name: Lint
     runs-on: ubuntu-latest
     steps:
@@ -23,11 +28,12 @@ jobs:
         run: pixi run -e lint lint
 
   checks:
+    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
     name: Test 🐍 ${{ matrix.environment }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        environment: [py310, py311, py312]
+        environment: [tests-py310, tests-py312]
     runs-on: ${{ matrix.os }}
 
     steps:

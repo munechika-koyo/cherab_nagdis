@@ -11,6 +11,8 @@ from rich.console import Console
 
 __all__ = ["create_dataset"]
 
+_TO_MICROSECOND: int = 1_000_000  # conversion factor from [s] to [µs]
+
 
 def create_dataset(
     wvf_path: Path | None = None,
@@ -18,13 +20,19 @@ def create_dataset(
     mask_dir: Path | None = None,
     wireframe_path: Path | None = None,
     save_path: Path | None = None,
-    video_fps: float = 100e3,
+    sample_rate: int = 1_000_000,
+    video_fps: int = 100_000,
 ):
     """Create a dataset from the waveform, video, and mask files.
 
     This function creates a dataset from the waveform, video, and mask files.
     The `trigger`, `II_gate`, `Vf_A`, `Vf_D`, `V_probe`, and `I_sat` signals
     are extracted from CH1, CH3, CH4, CH8, CH9, and CH10 traces in waveform file, respectively.
+
+    .. note::
+        The minimum time step of dataset is assumed to be 1 µs (i.e., 1 MHz sample rate),
+        and `time`-related coordinates are represented as `int64` in microseconds to avoid
+        floating point precision issues.
 
     Parameters
     ----------
@@ -40,7 +48,9 @@ def create_dataset(
         The path to the wireframe image file. If None, the wireframe image will not be added.
     save_path : Path, optional
         The path to save the dataset as a NetCDF file. If None, the dataset will not be saved.
-    video_fps : float, optional
+    sample_rate : int, optional
+        The sample rate of the waveform data in Hz, by default 1 MHz.
+    video_fps : int, optional
         The video frame rate in Hz, by default 100 kHz.
     """
     console = Console()
@@ -58,6 +68,10 @@ def create_dataset(
         Vf_D = wvf_data.traces["CH8"].y.ravel()
         V_probe = wvf_data.traces["CH9"].y.ravel()
         I_sat = wvf_data.traces["CH10"].y.ravel() * 10
+
+        # Convert time variable to int64 in microseconds
+        t0: int = round(time[0] * _TO_MICROSECOND)  # start time in µs
+        time = np.arange(t0, t0 + len(time), _TO_MICROSECOND / sample_rate, dtype=np.int64)
 
         ds = xr.Dataset(
             {
@@ -77,9 +91,9 @@ def create_dataset(
                     "time",
                     time,
                     dict(
-                        units="s",
+                        units="µs",
                         long_name="Time",
-                        sample_freaquency=1 / (time[1] - time[0]),
+                        sample_rate=sample_rate,
                     ),
                 )
             },
@@ -112,22 +126,29 @@ def create_dataset(
             video_dir = Path(askdirectory(title="Select the video directory"))
 
         video_files = sorted(video_dir.glob("*.tif"))
+        if len(video_files) == 0:
+            raise FileNotFoundError(f"No .tif files found in {video_dir}")
 
         # video time steps
-        t0 = (
+        # NOTE: we assume the video start time is when II_gate first exceeds 2.0 V
+        # After that, photons are captured during the I.I.'s exposure time.
+        # Ignoring I.I.'s gate delay time (~100 ns).
+        t0: int = (
             ds["II_gate"]
             .where(ds["II_gate"] > 2.0, drop=True)
             .where(ds["time"] > 0, drop=True)
             .time[0]
+            .data.item()
         )
-        dt = 1 / video_fps
-        t0 += 0.5 * dt  # start from the middle of the first frame
-        time = np.linspace(t0, t0 + len(video_files) / video_fps, len(video_files))
+
+        # Set the video time steps
+        _dt: int = round(_TO_MICROSECOND / video_fps)  # time step in µs
+        time = np.arange(t0, t0 + len(video_files) * _dt, _dt, dtype=np.int64)
 
         # Trim the dataset to match the video time steps
         # NOTE: video start time is later than the wvf start time, so we need to trim the dataset
         # to match the video time steps.
-        ds = ds.where(ds["time"] >= time[0], drop=True)
+        # ds = ds.where(ds["time"] >= time[0], drop=True)
 
         # Align end time by trimming either the wvf dataset or the video files
         if time[-1] > ds["time"][-1]:
@@ -162,10 +183,10 @@ def create_dataset(
                     "time_video",
                     time,
                     {
-                        "units": "s",
+                        "units": "µs",
                         "long_name": "Time",
                         "description": "Video time steps",
-                        "sample_frequency": 1 / (time[1] - time[0]),
+                        "sample_rate": video_fps,
                     },
                 )
             }
@@ -207,6 +228,6 @@ def create_dataset(
         # === Save the dataset ===
         if save_path is not None:
             ds_merged.to_netcdf(save_path, format="NETCDF4")
-            console.log(f"[Dataset saved to {save_path}")
+            console.log(f"Dataset saved to {save_path}")
 
         return ds_merged

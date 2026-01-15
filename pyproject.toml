@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling", "hatch-cython>=0.6.0rc0", "hatch-vcs", "raysect"]
+requires = ["hatch-cython>=0.6.0", "hatch-vcs", "cherab>=1.5,<2.0"]
 build-backend = "hatchling.build"
 
 [project]
@@ -7,7 +7,8 @@ name = "cherab-nagdis"
 description = "Cherab for NAGDIS-II"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
 keywords = ["cherab", "nagdis", "fusion", "plasma", "inversion"]
 authors = [{ name = "Koyo Munechika", email = "munechika.koyo@gmail.com" }]
 classifiers = [
@@ -16,7 +17,6 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: Implementation :: CPython",
 ]
 dependencies = [
@@ -24,7 +24,7 @@ dependencies = [
   "matplotlib",
   "scipy",
   "plotly",
-  "cherab",
+  "cherab>=1.5,<2.0",
   "calcam",
   "pooch",
   "paramiko",
@@ -43,16 +43,13 @@ repository = "https://github.com/munechika-koyo/cherab_nagdis"
 source = "vcs"
 
 [tool.hatch.metadata.hooks.vcs]
+
 # ----------------------------
 # === Build/Package config ===
 # ----------------------------
 [tool.hatch.build.targets.wheel]
 packages = ["src/cherab"]
-artifacts = [
-  "*.so",
-  "*.dll",
-  "*.dylib",
-]
+artifacts = ["*.so", "*.dll", "*.dylib"]
 exclude = ["*.pyx"]
 
 [tool.hatch.build.targets.wheel.hooks.cython]
@@ -68,7 +65,7 @@ compile_py = false
 targets = ["**/*.pyx"]
 
 [tool.cibuildwheel]
-skip = "pp* *_ppc64le *_i686 *_s390x *-musllinux* cp39-* cp313-*"
+skip = "pp* *_ppc64le *_i686 *_s390x *-musllinux* cp313-* cp314-*"
 build-frontend = "build[uv]"
 test-requires = ["pytest", "pytest-cov"]
 test-command = "pytest {project}/tests"
@@ -111,6 +108,9 @@ ignore = [
   "N806", # variable in function should be lowercase
 ]
 
+[tool.ruff.lint.isort]
+known-first-party = ["cherab"]
+
 [tool.ruff.lint.per-file-ignores]
 "**/*.ipynb" = ["W292"] # no newline at end of file
 
@@ -122,7 +122,7 @@ blank = false
 
 [tool.numpydoc_validation]
 checks = [
-  "all", # report on all checks, except the below
+  "all",  # report on all checks, except the below
   "GL01", # Docstring text (summary) should start in the line immediately
   "EX01", # No examples section found
   "SA01", # See Also section not found
@@ -137,3 +137,26 @@ exclude = [ # don't report on objects that match any of these regex
   '\.__repr__$',
 ]
 override_SS05 = ['^Process ', '^Assess ', '^Access ']
+
+# ------------------------------
+# === Type checking settings ===
+# ------------------------------
+[tool.mypy]
+files = ["src", "tests"]
+warn_unused_configs = true
+strict = true
+enable_error_code = ["ignore-without-code", "truthy-bool"]
+disable_error_code = ["no-any-return"]
+
+[tool.basedpyright]
+include = ["src", "tests"]
+pythonPlatform = "All"
+typeCheckingMode = "all"
+reportMissingTypeStubs = true
+
+# no raysect/cherab type stubs; pytest fixtures
+reportUnknownMemberType = false
+reportUnknownVariableType = false
+
+# ruff handles this
+reportUnusedParameter = false
