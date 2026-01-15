@@ -1,9 +1,5 @@
 [build-system]
-requires = [
-  "hatch-cython>=0.6.0",
-  "hatch-vcs",
-  "raysect>=0.9.0,<0.10",
-]
+requires = ["hatch-cython>=0.6.0", "hatch-vcs", "raysect>=0.9.0,<0.10"]
 build-backend = "hatchling.build"
 
 [project]
@@ -29,7 +25,7 @@ dependencies = [
   "scipy",
   "plotly",
   "raysect>=0.9.0,<0.10",
-  "cherab",
+  "cherab>=1.5,<2.0",
   "calcam",
   "pooch",
   "paramiko",
@@ -70,7 +66,7 @@ compile_py = false
 targets = ["**/*.pyx"]
 
 [tool.cibuildwheel]
-skip = "pp* *_ppc64le *_i686 *_s390x *-musllinux* cp39-* cp313-* cp314-*"
+skip = "pp* *_ppc64le *_i686 *_s390x *-musllinux* cp313-* cp314-*"
 build-frontend = "build[uv]"
 test-requires = ["pytest", "pytest-cov"]
 test-command = "pytest {project}/tests"
