@@ -193,8 +193,12 @@ docformatter = { cmd = "docformatter --in-place", description = "Format docstrin
 cython-lint = { cmd = "cython-lint", description = "Lint Cython files" }
 lint = { cmd = "lefthook run pre-commit --all-files --force", description = "🧹 Run all linters" }
 
+# === Build feature ===
 [feature.build.dependencies]
 python-build = "*"
+
+[feature.build.dev]
+cherab-nagdis = { path = "." }
 
 [feature.build.tasks]
 build-wheel = { cmd = "python -m build -nx -w", description = "🔧 Build wheel distribution" }
