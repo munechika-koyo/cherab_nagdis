@@ -89,74 +89,65 @@ exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
 minversion = "6.0"
 addopts = "--cov=cherab_nagdis --cov-report term-missing --no-cov-on-fail"
 
-# --------------------------
-# === Lint/Format config ===
-# --------------------------
-[tool.cython-lint]
-max-line-length = 140
-
+# ------------------------------
+# === Lint / Format settings ===
+# ------------------------------
 [tool.ruff]
 line-length = 100
-target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "N", "B", "NPY"]
+select = [
+  "E",   # pycodestyle
+  "B",   # flake8-bugbear
+  "F",   # pyflakes
+  "I",   # isort (import order)
+  "N",   # pep8-naming
+  "W",   # Warning
+  "UP",  # pyupgrade
+  "NPY", # numpy specific rules
+  "D",   # pydocstyle
+  "DOC", # pydoclint
+]
+preview = true
 ignore = [
-  "E501", # line too long (allow for docstrings)
+  # Recommended ignores by ruff when using formatter
+  "E501", # line too long
   "N802", # function name should be lowercase
   "N803", # argument name should be lowercase
   "N806", # variable in function should be lowercase
+  "D107", # missing docstring in __init__
 ]
 
 [tool.ruff.lint.isort]
 known-first-party = ["cherab"]
 
 [tool.ruff.lint.per-file-ignores]
-"**/*.ipynb" = ["W292"] # no newline at end of file
+"**/*.ipynb" = [
+  "W292",
+  "D",
+  "DOC",
+] # no newline at end of file and skip docstring checks
+"tests/**" = ["D", "DOC"] # skip docstring checks in tests
 
-[tool.docformatter]
-recursive = true
-wrap-summaries = 100
-wrap-descriptions = 100
-blank = false
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
 
-[tool.numpydoc_validation]
-checks = [
-  "all",  # report on all checks, except the below
-  "GL01", # Docstring text (summary) should start in the line immediately
-  "EX01", # No examples section found
-  "SA01", # See Also section not found
-  "ES01", # No extended summary found
-  "GL08", # The object does not have a docstring
-  "RT01", # No Returns section found
-  "PR01", # Parameters {missing_params} not documented
-  "SS06", # Summary should fit in a single line
-]
-# remember to use single quotes for regex in TOML
-exclude = [ # don't report on objects that match any of these regex
-  '\.__repr__$',
-]
-override_SS05 = ['^Process ', '^Assess ', '^Access ']
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.cython-lint]
+max-line-length = 100
 
 # ------------------------------
 # === Type checking settings ===
 # ------------------------------
 [tool.mypy]
-files = ["src", "tests"]
+files = ["src"]
 warn_unused_configs = true
 strict = true
 enable_error_code = ["ignore-without-code", "truthy-bool"]
 disable_error_code = ["no-any-return"]
+plugins = ["numpy.typing.mypy_plugin"]
 
-[tool.basedpyright]
-include = ["src", "tests"]
-pythonPlatform = "All"
-typeCheckingMode = "all"
-reportMissingTypeStubs = true
-
-# no raysect/cherab type stubs; pytest fixtures
-reportUnknownMemberType = false
-reportUnknownVariableType = false
-
-# ruff handles this
-reportUnusedParameter = false
+[tool.pyrefly]
+project-includes = ["src"]
