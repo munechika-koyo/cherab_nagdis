@@ -13,14 +13,14 @@ __all__ = ["ConditionalAverage"]
 
 
 class ConditionalAverage:
-    """Class to perform conditional average of dataset.
+    r"""Class to perform conditional average of dataset.
 
     Parameters
     ----------
-    path : Path | str
+    path
         Path to the dataset.
-    dt : int
-        Time range to perform the conditional average (:math:`\\pm\\Delta t` around the peaked time).
+    dt
+        Time range to perform the conditional average (:math:`\pm\Delta t` around the peaked time).
         The unit is in microseconds [µs].
     """
 
@@ -41,21 +41,26 @@ class ConditionalAverage:
 
         Parameters
         ----------
-        signal : str
+        signal
             Signal to find peaks.
-        height : array_like, optional
+        height
             Factor of standard deviation to set the height of peaks, by default 2.5.
             If a float, the height is set to `mean + height * std`.
             If an array_like with two elements, the height is set to
             `(mean + height[0] * std, mean + height[1] * std)`.
             Otherwise, raise ValueError.
-        prominence : float, optional
+        prominence
             Required prominence of peaks, by default the standard deviation of the signal.
 
         Returns
         -------
         numpy.ndarray
             Time of peaks in microseconds [µs].
+
+        Raises
+        ------
+        ValueError
+            If `height` is not a float, tuple of two floats, or None.
         """
         # Get time of peaks
         end_time = self.ds.time[-1].values
@@ -87,46 +92,47 @@ class ConditionalAverage:
     def average_per_tau(
         self, peak_times: ArrayLike, d_tau: int, tau_eps: float | None = None
     ) -> xr.Dataset:
-        """Average the dataset per tau.
+        r"""Average the dataset per tau.
 
         Average the data :math:`f(t)` like:
 
         .. math::
 
-            f_\\mathrm{avg}(\\tau) = \\frac{1}{\\#T^{(\\tau)}}\\sum_{t \\in T^{(\\tau)}} f(t + \\tau),
+            f_\mathrm{avg}(\tau) = \frac{1}{\#T^{(\tau)}}\sum_{t \in T^{(\tau)}} f(t + \tau),
 
-            T^{(\\tau)}
-                \\equiv
-                \\left\\{
-                    t' \\in T_\\mathrm{video}
-                    \\middle |
-                    \\begin{gathered}
-                        t' = t_\\mathrm{peak} + \\tau\\\\
-                        t_\\mathrm{peak} \\in T_\\mathrm{peak}
-                    \\end{gathered}
-                \\right\\},
+            T^{(\tau)}
+                \equiv
+                \left\{
+                    t' \in T_\mathrm{video}
+                    \middle |
+                    \begin{gathered}
+                        t' = t_\mathrm{peak} + \tau\\
+                        t_\mathrm{peak} \in T_\mathrm{peak}
+                    \end{gathered}
+                \right\},
 
-        where :math:`\\tau \\in \\{-\\Delta t, -\\Delta t + \\Delta \\tau, \\ldots, \\Delta t\\}`,
-        :math:`T_\\mathrm{peak}` is the set of peak times from the waveform signal, and
-        :math:`T_\\mathrm{video}` is the set of video times.
-        This function enables to enhance the :math:`\\tau` resolution even if the frequency of the
+        where :math:`\tau \in \{-\Delta t, -\Delta t + \Delta \tau, \ldots, \Delta t\}`,
+        :math:`T_\mathrm{peak}` is the set of peak times from the waveform signal, and
+        :math:`T_\mathrm{video}` is the set of video times.
+        This function enables to enhance the :math:`\tau` resolution even if the frequency of the
         video dataset is lower than the signal dataset.
 
         Parameters
         ----------
-        peak_times : array_like
-            Set of peak times :math:`T_\\mathrm{peak}`.
-        d_tau : int
-            Time interval of tau :math:`\\Delta \\tau`, in microseconds [µs].
-        tau_eps : float, optional
+        peak_times
+            Set of peak times :math:`T_\mathrm{peak}`.
+        d_tau
+            Time interval of tau :math:`\Delta \tau`, in microseconds [µs].
+        tau_eps
             Tolerance of video dataset time to match with signal dataset time,
             by default `d_tau * 0.5`.
 
-        Return
-        ------
+        Returns
+        -------
         xarray.Dataset
-            Averaged dataset.
+            Conditional Averaged dataset.
         """
+        peak_times = np.asarray_chkfinite(peak_times)
         tau_eps = d_tau * 0.5 if tau_eps is None else tau_eps
         taus = np.linspace(-self.dt, self.dt, round(2 * self.dt / d_tau) + 1, endpoint=True)
 
@@ -232,31 +238,31 @@ class ConditionalAverage:
         return ds_avg
 
     def average(self, peak_time, time_eps: float | None = None) -> xr.Dataset:
-        """Average the dataset.
+        r"""Average the dataset.
 
         Average the data :math:`f(t)` like:
 
         .. math::
 
-            f_\\mathrm{avg}(\\tau) = \\frac{1}{\\#T}\\sum_{t \\in T} f(t + \\tau),
+            f_\mathrm{avg}(\tau) = \frac{1}{\#T}\sum_{t \in T} f(t + \tau),
 
-            T \\equiv \\{t' \\mid t'\\in T_\\mathrm{peak}\\cap T_\\mathrm{video}\\},
+            T \equiv \{t' \mid t'\in T_\mathrm{peak}\cap T_\mathrm{video}\},
 
-        where :math:`\\tau \\in [-\\Delta t, \\Delta t]`, :math:`T_\\mathrm{peak}` is the set of
-        peak times from the waveform signal, and :math:`T_\\mathrm{video}` is the set of video times.
+        where :math:`\tau \in [-\Delta t, \Delta t]`, :math:`T_\mathrm{peak}` is the set of
+        peak times from the waveform signal, and :math:`T_\mathrm{video}` is the set of video times.
 
         Parameters
         ----------
-        peak_time : array_like
-            Set of peak times :math:`T_\\mathrm{peak}`.
-        time_eps : float, optional
+        peak_time
+            Set of peak times :math:`T_\mathrm{peak}`.
+        time_eps
             Tolerance of peak time corresponding video time, by default the half of the time step of
             the signal dataset.
 
         Returns
         -------
         xarray.Dataset
-            Averaged dataset.
+            Conditional Averaged dataset.
         """
         d_t = self.ds.time.values[1] - self.ds.time.values[0]
         d_t_video = self.ds.time_video.values[1] - self.ds.time_video.values[0]
@@ -367,6 +373,18 @@ class ConditionalAverage:
         """Create images from the dataset.
 
         This function is a proxy for the `create_images` function in the `.utils` module.
+
+        Parameters
+        ----------
+        ds
+            Dataset to create images.
+        time_name
+            Name of time dimension, by default "tau".
+
+        Returns
+        -------
+        xarray.DataArray
+            DataArray of images.
         """
         return create_images(ds, time_name)
 
@@ -376,15 +394,15 @@ class ConditionalAverage:
 
         Parameters
         ----------
-        ds : xarray.Dataset
+        ds
             Dataset to create time-axis and y-axis contour.
-        time_name : str, optional
+        time_name
             Name of time dimension, by default "tau".
 
         Returns
         -------
         xarray.DataArray
-            A t-y contour DataArray.
+            :math:`t-y` contour DataArray.
         """
         masks: list[str] = [var for var in ds.data_vars if "mask" in var]  # type: ignore
 

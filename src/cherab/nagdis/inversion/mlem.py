@@ -11,19 +11,19 @@ __all__ = ["MLEM"]
 
 
 class MLEM:
-    """Maximum Likelihood Expectation Maximization (MLEM) algorithm.
+    r"""Maximum Likelihood Expectation Maximization (MLEM) algorithm.
 
     This class provides a simple implementation of the MLEM algorithm for solving the inverse problem
-    :math:`\\mathbf{T} \\mathbf{x} = \\mathbf{b}` where :math:`\\mathbf{T}` is the forward problem matrix,
-    :math:`\\mathbf{x}` is the unknown solution, and :math:`\\mathbf{b}` is the given data.
+    :math:`\mathbf{T} \mathbf{x} = \mathbf{b}` where :math:`\mathbf{T}` is the forward problem matrix,
+    :math:`\mathbf{x}` is the unknown solution, and :math:`\mathbf{b}` is the given data.
 
     Parameters
     ----------
     T : (M, N) ndarray | spmatrix
-        Matrix :math:`\\mathbf{T}` of the forward problem.
+        Matrix :math:`\mathbf{T}` of the forward problem.
     data : (M, ) or (M, K) array_like, optional
-        Given data :math:`\\mathbf{b}_k`. :math:`k` time slices of the data vector
-        :math:`\\begin{bmatrix} \\mathbf{b}_1 & \\mathbf{b}_2 & \\cdots & \\mathbf{b}_K \\end{bmatrix}`
+        Given data :math:`\mathbf{b}_k`. :math:`k` time slices of the data vector
+        :math:`\begin{bmatrix} \mathbf{b}_1 & \mathbf{b}_2 & \cdots & \mathbf{b}_K \end{bmatrix}`
         can be given as an array_like object.
     """
 
@@ -43,15 +43,15 @@ class MLEM:
 
     @property
     def T(self) -> np.ndarray | spmatrix:
-        """Matrix :math:`\\mathbf{T}` of the forward problem."""
+        r"""Matrix :math:`\mathbf{T}` of the forward problem."""
         return self._T
 
     @property
     def data(self) -> np.ndarray:
-        """Given data :math:`\\mathbf{b}_k`.
+        r"""Given data :math:`\mathbf{b}_k`.
 
         :math:`k` time slices of the data vector
-        :math:`\\begin{bmatrix} \\mathbf{b}_1 & \\mathbf{b}_2 & \\cdots & \\mathbf{b}_K \\end{bmatrix}`
+        :math:`\begin{bmatrix} \mathbf{b}_1 & \mathbf{b}_2 & \cdots & \mathbf{b}_K \end{bmatrix}`
         can be given as an array_like object.
         """
         return self._data
@@ -78,22 +78,22 @@ class MLEM:
         quiet: bool = False,
         store_temp: bool = False,
     ):
-        """Solve the inverse problem using the MLEM algorithm.
+        r"""Solve the inverse problem using the MLEM algorithm.
 
         Parameters
         ----------
         x0 : (N, ) or (N, K) ndarray, optional
-            Initial guess of the solution :math:`\\mathbf{x}`.
+            Initial guess of the solution :math:`\mathbf{x}`.
             If not given, a vector of ones is used.
-        tol : float, optional
+        tol
             Tolerance for convergence, by default 1e-5.
             The iteration stops when the maximum difference between the current and previous
             solutions is less than this value.
-        max_iter : int, optional
+        max_iter
             Maximum number of iterations, by default 100.
-        quiet : bool, optional
+        quiet
             Whether to suppress the progress bar, by default False.
-        store_temp : bool, optional
+        store_temp
             Whether to store the temporary solutions during the iteration, by default False.
 
         Returns
@@ -103,6 +103,11 @@ class MLEM:
             If the data has K time slices, the solution is a matrix.
         status : dict
             Dictionary containing the status of the iteration.
+
+        Raises
+        ------
+        ValueError
+            If data is not set before calling this method.
         """
         if self._data is None:
             raise ValueError("data must be set before calling solve method")
