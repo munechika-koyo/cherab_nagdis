@@ -22,7 +22,7 @@ def create_dataset(
     save_path: Path | None = None,
     sample_rate: int = 1_000_000,
     video_fps: int = 100_000,
-):
+) -> xr.Dataset:
     """Create a dataset from the waveform, video, and mask files.
 
     This function creates a dataset from the waveform, video, and mask files.
@@ -55,7 +55,7 @@ def create_dataset(
 
     Returns
     -------
-    xarray.Dataset
+    `xarray.Dataset`
         The created dataset.
 
     Raises

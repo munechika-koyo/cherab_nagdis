@@ -98,9 +98,9 @@ class ConditionalAverage:
 
         .. math::
 
-            f_\mathrm{avg}(\tau) = \frac{1}{\#T^{(\tau)}}\sum_{t \in T^{(\tau)}} f(t + \tau),
+            f_\mathrm{avg}(\tau) = \frac{1}{|T(\tau)|}\sum_{t \in T(\tau)} f(t),
 
-            T^{(\tau)}
+            T(\tau)
                 \equiv
                 \left\{
                     t' \in T_\mathrm{video}
@@ -244,9 +244,9 @@ class ConditionalAverage:
 
         .. math::
 
-            f_\mathrm{avg}(\tau) = \frac{1}{\#T}\sum_{t \in T} f(t + \tau),
+            f_\mathrm{avg}(\tau) &= \frac{1}{|T|}\sum_{t \in T} f(t + \tau),
 
-            T \equiv \{t' \mid t'\in T_\mathrm{peak}\cap T_\mathrm{video}\},
+            T &\equiv \{t' \mid t'\in T_\mathrm{peak}\cap T_\mathrm{video}\},
 
         where :math:`\tau \in [-\Delta t, \Delta t]`, :math:`T_\mathrm{peak}` is the set of
         peak times from the waveform signal, and :math:`T_\mathrm{video}` is the set of video times.
