@@ -85,6 +85,7 @@ def complex_profile(
     where :math:`f_\mathrm{central}(r)` is the central radiator profile and
     :math:`f_\mathrm{ring}(r, \theta)` is the outer ring radiator profile.
     The central radiator profile is given by:
+
     .. math::
 
         f_\mathrm{central}(r) = A \left[
@@ -97,6 +98,7 @@ def complex_profile(
         \right],
 
     and the outer ring radiator profile is given by:
+
     .. math::
 
         f_\mathrm{ring}(r, \theta) = A \cos(\theta) \exp\left(
