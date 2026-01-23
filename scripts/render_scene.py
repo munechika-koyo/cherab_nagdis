@@ -1,5 +1,5 @@
 #!/usr/bin/env -S pixi run python
-"""This script generates a synthetic camera image with illumination to view the scene."""
+"""Generate a synthetic camera image with illumination to view the scene."""
 
 from datetime import datetime, timedelta
 from pathlib import Path

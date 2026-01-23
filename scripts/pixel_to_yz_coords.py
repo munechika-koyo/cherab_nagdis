@@ -52,8 +52,21 @@ origins = camera.pixel_origins[:, trim]
 directions = camera.pixel_directions[:, trim]
 
 
-def ray_paths(ix, iy):
-    """Trace a ray from pixel (ix, iy) and return the origin and hit point."""
+def ray_paths(ix: int, iy: int) -> list[Point3D]:
+    """Trace a ray from pixel (ix, iy) and return the origin and hit point.
+
+    Parameters
+    ----------
+    ix
+        Pixel x-index.
+    iy
+        Pixel y-index.
+
+    Returns
+    -------
+    list[Point3D]
+        List containing the ray origin and the hit point at the termination plane.
+    """
     ray = LoggingRay(origins[ix, iy], directions[ix, iy].normalise())
     ray.trace(world)
 
