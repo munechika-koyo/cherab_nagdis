@@ -136,7 +136,7 @@ convention = "numpy"
 docstring-code-format = true
 
 [tool.cython-lint]
-max-line-length = 100
+max-line-length = 120
 
 # ------------------------------
 # === Type checking settings ===
