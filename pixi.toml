@@ -69,26 +69,6 @@ ultraplot = "*"
 wvfreader = "*"
 
 [tasks]
-clean = { cmd = [
-  "find",
-  "src/",
-  "-type",
-  "f",
-  "\\(",
-  "-name",
-  "'*.c'",
-  "-o",
-  "-name",
-  "'*.so'",
-  "-o",
-  "-name",
-  "'*.dylib'",
-  "-o",
-  "-name",
-  "'*.html'",
-  "\\)",
-  "-delete",
-], description = "🔥 Remove build artifacts and temporary files (e.g. *.c, *.so, *.dylib, *.html)" }
 dataset = { cmd = [
   "python",
   "-c",
@@ -147,7 +127,8 @@ doc-clean = { cmd = [
   "rm",
   "-rf",
   "build",
-], cwd = "docs", description = "🔥 Clean the docs build directory" }
+  "source/_api",
+], cwd = "docs", description = "🔥 Clean the docs build & api directory" }
 doc-serve = { cmd = [
   "python",
   "-m",
@@ -156,6 +137,7 @@ doc-serve = { cmd = [
   "--directory",
   "build/html",
 ], cwd = "docs", description = "🚀 Start a local server for the docs" }
+
 
 # === Linting feature ===
 [feature.lint.dependencies]
@@ -188,6 +170,27 @@ blacken-docs = { cmd = "blacken-docs", description = "Format Python markdown blo
 validate-pyproject = { cmd = "validate-pyproject pyproject.toml", description = "Validate pyproject.toml" }
 cython-lint = { cmd = "cython-lint", description = "Lint Cython files" }
 lint = { cmd = "lefthook run pre-commit --all-files --force", description = "🧹 Run all linters" }
+
+clean = { cmd = [
+  "find",
+  "src/",
+  "-type",
+  "f",
+  "\\(",
+  "-name",
+  "'*.c'",
+  "-o",
+  "-name",
+  "'*.so'",
+  "-o",
+  "-name",
+  "'*.dylib'",
+  "-o",
+  "-name",
+  "'*.html'",
+  "\\)",
+  "-delete",
+], description = "🔥 Remove build artifacts and temporary files (e.g. *.c, *.so, *.dylib, *.html)" }
 
 # === Build feature ===
 [feature.build.dependencies]
