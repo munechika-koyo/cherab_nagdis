@@ -8,7 +8,7 @@ description = "Cherab for NAGDIS-II"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
-license-files = ["LICEN[CS]E*"]
+license-files = ["LICENSE"]
 keywords = ["cherab", "nagdis", "fusion", "plasma", "inversion"]
 authors = [{ name = "Koyo Munechika", email = "munechika.koyo@gmail.com" }]
 classifiers = [
@@ -17,6 +17,8 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Programming Language :: Python :: Implementation :: CPython",
 ]
 dependencies = [
@@ -141,13 +143,5 @@ max-line-length = 120
 # ------------------------------
 # === Type checking settings ===
 # ------------------------------
-[tool.mypy]
-files = ["src"]
-warn_unused_configs = true
-strict = true
-enable_error_code = ["ignore-without-code", "truthy-bool"]
-disable_error_code = ["no-any-return"]
-plugins = ["numpy.typing.mypy_plugin"]
-
 [tool.pyrefly]
 project-includes = ["src"]
