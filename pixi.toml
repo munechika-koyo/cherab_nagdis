@@ -50,6 +50,7 @@ ipython = "*"
 
 # Type stubs
 scipy-stubs = "*"
+cherab-stubs = { git = "https://github.com/munechika-koyo/cherab-stubs.git" }
 
 
 # For JupyterLab and interactive plots
@@ -180,7 +181,8 @@ cherab-nagdis = { path = "." }
 build-wheel = { cmd = "python -m build -nx -w", description = "🔧 Build wheel distribution" }
 build-sdist = { cmd = "python -m build -nx -s", description = "🔧 Build source distribution" }
 
-
+# === Tools feature ===
+# This feature is used for miscellaneous tools that don't need any specific dependencies.
 [feature.tools.tasks]
 clean = { cmd = [
   "find",
