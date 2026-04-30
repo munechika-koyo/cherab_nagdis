@@ -59,16 +59,16 @@ def fetch_file(
 
     Parameters
     ----------
-    name : str
+    name
         Name of the file to fetch.
-    host : str, optional
+    host
         Host name of the server, by default ``sftp://example.com/``.
         This value is adaptable from the environment variable `SSH_RAYTRACE_HOSTNAME`.
         Host name should be in the format ``sftp://{host's name or ip}/{directories}``.
-    username : str, optional
+    username
         Username to authenticate with the server, by default ``username``.
         This value is adaptable from the environment variable `SSH_RAYTRACE_USERNAME`.
-    password : str, optional
+    password
         Password to authenticate with the server, by default ``password``.
         This value is adaptable from the environment variable `SSH_RAYTRACE_PASSWORD`.
 

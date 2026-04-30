@@ -14,9 +14,9 @@ def create_images(ds: xr.Dataset, time_name: str = "time_video") -> xr.DataArray
 
     Parameters
     ----------
-    ds : xarray.Dataset
+    ds
         Dataset to create images.
-    time_name : str, optional
+    time_name
         Name of time dimension followed by the camera images, by default "time_video".
 
     Returns

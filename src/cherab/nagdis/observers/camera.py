@@ -23,20 +23,20 @@ __all__ = ["load_camera", "show_camera_geometry"]
 
 def load_camera(
     parent: World,
-    path_to_calibration: str = "20240705_mod.ccc",
+    path_to_calibration: str = "camera_carib.ccc",
     **kwargs,
 ) -> ThinLensCCDArray:
-    """Loading fast lens camera configured with calcam calibration data.
+    """Load fast lens camera configured with calcam calibration data.
 
     Default camera extrinsic matrix (rotation matrix and translation vector) is loaded from
     `calcam` calibration data.
 
     Parameters
     ----------
-    parent : `~raysect.optical.scenegraph.world.World`
+    parent
         Raysect world object to which the camera is attached.
-    path_to_calibration : str, optional
-        Path to `calcam` calibration data, by default "20240705_mod.ccc".
+    path_to_calibration
+        Path to `calcam` calibration data, by default "camera_carib.ccc".
         This file is fetched by `.fetch_file` function.
     **kwargs
         Additional keyword arguments to pass to `.fetch_file` function.
@@ -48,13 +48,11 @@ def load_camera(
 
     Examples
     --------
-    .. prompt:: python >>> auto
-
-        >>> from raysect.optical import World
-        >>> from cherab.nagdis.observers import load_camera
-        >>>
-        >>> world = World()
-        >>> camera = load_camera(world)
+    >>> from raysect.optical import World
+    >>> from cherab.nagdis.observers import load_camera
+    >>>
+    >>> world = World()
+    >>> camera = load_camera(world)
     """
     try:
         # Load calibration data from calcam file
@@ -102,9 +100,9 @@ def show_camera_geometry(fig: go.Figure, camera: Observer2D) -> go.Figure:
 
     Parameters
     ----------
-    fig : `~plotly.graph_objects.Figure`
+    fig
         Plotly figure object.
-    camera : `~raysect.optical.observer.Observer2D`
+    camera
         Observer2D object.
 
     Returns

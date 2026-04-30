@@ -1,5 +1,5 @@
 #!/usr/bin/env -S pixi run python
-"""This script is used to generate a Ray-Transfer Matrix (RTM)."""
+"""Generate a Ray-Transfer Matrix (RTM)."""
 
 from datetime import datetime, timedelta
 from pathlib import Path

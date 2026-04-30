@@ -14,7 +14,7 @@ __all__ = ["RoughSUS316L"]
 class _DataLoader(RoughConductor):
     def __init__(self, filename, roughness):
         path = fetch_file(f"materials/{filename}.json")
-        with open(path, "r") as f:
+        with open(path) as f:
             data = json.load(f)
 
         wavelength = array(data["wavelength"])

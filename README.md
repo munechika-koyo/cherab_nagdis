@@ -21,8 +21,8 @@
 [Docs-release]: https://cherab-nagdis.readthedocs.io/en/stable/?badge=stable
 [PyPI-badge]: https://img.shields.io/pypi/v/cherab-nagdis?label=PyPI&logo=pypi&logoColor=gold&style=flat-square
 [docs-badge]: https://img.shields.io/github/actions/workflow/status/munechika-koyo/cherab_nagdis/docs.yml?style=flat-square&logo=GitHub&label=Docs
-[DOI-badge]: https://zenodo.org/badge/DOI/10.5281/zenodo.14929182.svg
-[DOI]: https://doi.org/10.5281/zenodo.14929182
+[DOI-badge]: https://zenodo.org/badge/DOI/10.5281/zenodo.18257046.svg
+[DOI]: https://doi.org/10.5281/zenodo.18257046
 [License-badge]: https://img.shields.io/github/license/munechika-koyo/cherab_nagdis?style=flat-square
 [License]: https://opensource.org/licenses/MIT
 [pixi-badge]: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/prefix-dev/pixi/main/assets/badge/v0.json&style=flat-square

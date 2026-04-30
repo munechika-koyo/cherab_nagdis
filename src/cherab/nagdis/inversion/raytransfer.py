@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from typing import Literal, overload
+
+import matplotlib.axes
+import matplotlib.figure
 import numpy as np
 from matplotlib import pyplot as plt
-from matplotlib.axes import Axes
-from matplotlib.figure import Figure
 from raysect.core.math import Point3D, Vector3D, rotate_vector, translate  # type: ignore
 from raysect.core.scenegraph._nodebase import _NodeBase  # type: ignore
 
@@ -42,21 +44,21 @@ def create_raytransfer_cylinder(
 
     Parameters
     ----------
-    parent : _NodeBase
+    parent
         Parent node of the RayTransferCylinder object.
-    radius : float, optional
+    radius
         Radius of the cylinder, by default 40.0 mm.
-    z_max : float, optional
+    z_max
         Maximum z-coordinate of the cylinder, by default 0.66 m.
-    z_min : float, optional
+    z_min
         Minimum z-coordinate of the cylinder, by default -0.5 m.
-    dr : float, optional
+    dr
         Radial step size, by default 1.5 mm.
-    dp : float, optional
+    dp
         Polar step size, by default 2.0 degree.
-    dz : float, optional
+    dz
         Axial step size, by default 20 mm.
-    step : float, optional
+    step
         Step size for the ray-transfer calculation, by default None.
         If None, the step size is set to 10% of the minimum of dr, dz, and dr * dp.
 
@@ -64,6 +66,13 @@ def create_raytransfer_cylinder(
     -------
     RayTransferCylinder
         RayTransferCylinder object.
+
+    Raises
+    ------
+    TypeError
+        If `parent` is not a scene-graph object.
+    ValueError
+        If `radius`, `z_max`, `z_min`, `dr`, `dp`, `dz`, or `step` are invalid.
 
     Examples
     --------
@@ -130,22 +139,22 @@ def create_raytransfer_box(
 
     Parameters
     ----------
-    parent : _NodeBase
+    parent
         Parent node of the RayTransferBox object.
-    radius : float, optional
+    radius
         Radius of the box, by default 40.0 mm.
-    z_max : float, optional
+    z_max
         Maximum z-coordinate of the box, by default 0.66 m.
-    z_min : float, optional
+    z_min
         Minimum z-coordinate of the box, by default -0.5 m.
-    dx : float, optional
+    dx
         Step size along the x-axis, by default 1.25 mm.
-    dy : float, optional
+    dy
         Step size along the y-axis, by default None.
         If None, dy is set to dx.
-    dz : float, optional
+    dz
         Step size along the z-axis, by default 20 mm.
-    step : float, optional
+    step
         Step size for the ray-transfer calculation, by default None.
         If None, the step size is set to 10% of the minimum of dx, dy, and dz.
 
@@ -154,6 +163,13 @@ def create_raytransfer_box(
     RayTransferBox
         RayTransferBox object.
 
+    Raises
+    ------
+    TypeError
+        If `parent` is not a scene-graph object.
+    ValueError
+        If `radius`, `z_max`, `z_min`, `dx`, `dy`, `dz`, or `step` are invalid.
+
     Examples
     --------
     >>> from raysect.optical import World
@@ -161,7 +177,6 @@ def create_raytransfer_box(
     >>> world = World()
     >>> box = create_raytransfer_box(world)
     """
-
     if not isinstance(parent, _NodeBase):
         raise TypeError("Parent must be a scene-graph object.")
 
@@ -206,24 +221,47 @@ def create_raytransfer_box(
     )
 
 
+@overload
 def plot_rtc_grid(
     rtc: RayTransferCylinder,
-    is_plot_axis=True,
-    fig: Figure | None = None,
-    axes: Axes | None = None,
+    is_plot_axis: Literal[False] = False,
+) -> tuple[
+    matplotlib.figure.Figure,
+    matplotlib.axes.Axes,
+]: ...
+
+
+@overload
+def plot_rtc_grid(
+    rtc: RayTransferCylinder,
+    is_plot_axis: Literal[True],
+) -> tuple[
+    matplotlib.figure.Figure,
+    tuple[matplotlib.axes.Axes, matplotlib.axes.Axes],
+]: ...
+
+
+def plot_rtc_grid(
+    rtc: RayTransferCylinder,
+    is_plot_axis: bool = True,
+    fig: matplotlib.figure.Figure | None = None,
+    axes: matplotlib.axes.Axes | None = None,
     **kwargs,
-) -> tuple[Figure, tuple[Axes, Axes] | Axes]:
+) -> tuple[
+    matplotlib.figure.Figure,
+    tuple[matplotlib.axes.Axes, matplotlib.axes.Axes] | matplotlib.axes.Axes,
+]:
     """Plot the grid of the RayTransferCylinder object.
 
     Parameters
     ----------
-    rtc : RayTransferCylinder
+    rtc
         RayTransferCylinder object.
-    is_plot_axis : bool, optional
+    is_plot_axis
         Whether to plot grids along the x and z axes, by default True.
-    fig : Figure, optional
+    fig
         Figure object to plot the grid, by default None.
-    axes : Axes, optional
+    axes
         Axes object to plot the grid, by default None.
     **kwargs
         Additional keyword arguments for the matplotlib plot function.
@@ -236,6 +274,11 @@ def plot_rtc_grid(
         Axes object for the cross-section grid.
     axes2 : `~matplotlib.axes.Axes`
         Axes object for the axial grid if `is_plot_axis` is True.
+
+    Raises
+    ------
+    TypeError
+        If `rtc` is not a RayTransferCylinder object.
     """
     if not isinstance(rtc, RayTransferCylinder):
         raise TypeError("rtc must be a RayTransferCylinder object.")
@@ -251,11 +294,11 @@ def plot_rtc_grid(
             layout="constrained",
         )
     else:
-        if isinstance(fig, Figure):
+        if isinstance(fig, matplotlib.figure.Figure):
             if axes is None:
                 ax1 = fig.add_subplot(111)
             else:
-                if not isinstance(axes, Axes):
+                if not isinstance(axes, matplotlib.axes.Axes):
                     raise TypeError("axes must be a matplotlib Axes object.")
                 ax1 = axes
         else:
@@ -327,24 +370,47 @@ def plot_rtc_grid(
         return fig, ax1
 
 
+@overload
 def plot_rtb_grid(
     rtb: RayTransferBox,
-    is_plot_axis=True,
-    fig: Figure | None = None,
-    axes: Axes | None = None,
+    is_plot_axis: Literal[False] = False,
+) -> tuple[
+    matplotlib.figure.Figure,
+    matplotlib.axes.Axes,
+]: ...
+
+
+@overload
+def plot_rtb_grid(
+    rtb: RayTransferBox,
+    is_plot_axis: Literal[True],
+) -> tuple[
+    matplotlib.figure.Figure,
+    tuple[matplotlib.axes.Axes, matplotlib.axes.Axes],
+]: ...
+
+
+def plot_rtb_grid(
+    rtb: RayTransferBox,
+    is_plot_axis: bool = True,
+    fig: matplotlib.figure.Figure | None = None,
+    axes: matplotlib.axes.Axes | None = None,
     **kwargs,
-) -> tuple[Figure, tuple[Axes, Axes] | Axes]:
+) -> tuple[
+    matplotlib.figure.Figure,
+    tuple[matplotlib.axes.Axes, matplotlib.axes.Axes] | matplotlib.axes.Axes,
+]:
     """Plot the grid of the RayTransferBox object.
 
     Parameters
     ----------
-    rtb : RayTransferBox
+    rtb
         RayTransferBox object.
-    is_plot_axis : bool, optional
+    is_plot_axis
         Whether to plot grids along the x and z axes, by default True.
-    fig : Figure, optional
+    fig
         Figure object to plot the grid, by default None.
-    axes : Axes, optional
+    axes
         Axes object to plot the grid, by default None.
     **kwargs
         Additional keyword arguments for the matplotlib plot function.
@@ -357,6 +423,11 @@ def plot_rtb_grid(
         Axes object for the cross-section grid.
     axes2 : `~matplotlib.axes.Axes`
         Axes object for the axial grid if `is_plot_axis` is True.
+
+    Raises
+    ------
+    TypeError
+        If `rtb` is not a RayTransferBox object.
     """
     if not isinstance(rtb, RayTransferBox):
         raise TypeError("rtb must be a RayTransferBox object.")
@@ -372,11 +443,11 @@ def plot_rtb_grid(
             layout="constrained",
         )
     else:
-        if isinstance(fig, Figure):
+        if isinstance(fig, matplotlib.figure.Figure):
             if axes is None:
                 ax1 = fig.add_subplot(111)
             else:
-                if not isinstance(axes, Axes):
+                if not isinstance(axes, matplotlib.axes.Axes):
                     raise TypeError("axes must be a matplotlib Axes object.")
                 ax1 = axes
         else:

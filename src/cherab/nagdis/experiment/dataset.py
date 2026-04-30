@@ -22,7 +22,7 @@ def create_dataset(
     save_path: Path | None = None,
     sample_rate: int = 1_000_000,
     video_fps: int = 100_000,
-):
+) -> xr.Dataset:
     """Create a dataset from the waveform, video, and mask files.
 
     This function creates a dataset from the waveform, video, and mask files.
@@ -36,22 +36,33 @@ def create_dataset(
 
     Parameters
     ----------
-    wvf_path : Path, optional
+    wvf_path
         The path to the `*.wvf` waveform file. If None, a file dialog will be opened.
-    video_dir : Path, optional
+    video_dir
         The path to the directory containing the `*.tif` files. If None, a directory dialog will be
         opened.
-    mask_dir : Path, optional
+    mask_dir
         The path to the directory containing the `*.npy` mask files. If None, a directory dialog
         will be opened.
-    wireframe_path : Path, optional
+    wireframe_path
         The path to the wireframe image file. If None, the wireframe image will not be added.
-    save_path : Path, optional
+    save_path
         The path to save the dataset as a NetCDF file. If None, the dataset will not be saved.
-    sample_rate : int, optional
+    sample_rate
         The sample rate of the waveform data in Hz, by default 1 MHz.
-    video_fps : int, optional
+    video_fps
         The video frame rate in Hz, by default 100 kHz.
+
+    Returns
+    -------
+    `xarray.Dataset`
+        The created dataset.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the specified mask directory or video directory does not exist, or if no `.tif` files are
+        found in the video directory.
     """
     console = Console()
     with console.status("[bold green]Creating dataset..."):
