@@ -171,15 +171,16 @@ lint = { cmd = "lefthook run pre-commit --all-files --force", description = "�
 
 
 # === Build feature ===
-[feature.build.dependencies]
-python-build = "*"
+# NOTE: Disabled because updating the lock file occurs every time for some reason.
+# [feature.build.dependencies]
+# python-build = "*"
 
-[feature.build.dev]
-cherab-nagdis = { path = "." }
+# [feature.build.dev]
+# cherab-nagdis = { path = "." }
 
-[feature.build.tasks]
-build-wheel = { cmd = "python -m build -nx -w", description = "🔧 Build wheel distribution" }
-build-sdist = { cmd = "python -m build -nx -s", description = "🔧 Build source distribution" }
+# [feature.build.tasks]
+# build-wheel = { cmd = "python -m build -nx -w", description = "🔧 Build wheel distribution" }
+# build-sdist = { cmd = "python -m build -nx -s", description = "🔧 Build source distribution" }
 
 # === Tools feature ===
 # This feature is used for miscellaneous tools that don't need any specific dependencies.
@@ -228,5 +229,5 @@ test-py314 = { features = [
   "test",
 ], solve-group = "py314" } # alias of test
 lint = ["lint", "test"]
-build = { features = ["build"], no-default-feature = true }
+# build = { features = ["build"], no-default-feature = true }
 tools = { features = ["tools"], no-default-feature = true }
