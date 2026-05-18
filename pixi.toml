@@ -206,9 +206,9 @@ build-sdist = { cmd = "python -m build -nx -s", description = "🔧 Build source
 
 # === Python Version Features ===
 [feature.py310.dependencies]
-python = "3.10.*"
+python = "3.14.*"
 [feature.py312.dependencies]
-python = "3.12.*"
+python = "3.14.*"
 
 [environments]
 default = { features = ["py312"], solve-group = "py312" }
