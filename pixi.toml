@@ -228,6 +228,5 @@ test-py314 = { features = [
   "py314",
   "test",
 ], solve-group = "py314" } # alias of test
-lint = ["lint", "test"]
-# build = { features = ["build"], no-default-feature = true }
+lint = { features = ["lint", "test"], solve-group = "py314" }
 tools = { features = ["tools"], no-default-feature = true }
