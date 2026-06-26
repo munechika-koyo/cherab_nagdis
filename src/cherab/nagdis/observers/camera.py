@@ -75,7 +75,7 @@ def load_camera(
         )
 
         # === generate ThinLensCCDArray object ===
-        pixel_size = calib.pixel_size
+        pixel_size: float = calib.pixel_size  # type: ignore[bad-assignment]
         camera = ThinLensCCDArray(
             pixels=(1280, 896),
             width=pixel_size * 1280,
@@ -86,7 +86,7 @@ def load_camera(
             parent=parent,
             pipelines=None,
             transform=rotate_x(-90)
-            * transform,  # NOTE: rotate_x(-90) is mondatory for +Y up system
+            * transform,  # NOTE: rotate_x(-90) is mandatory for +Y up system
             name="Fast-visible camera",
         )
     except Exception as e:
@@ -116,9 +116,9 @@ def show_camera_geometry(fig: go.Figure, camera: Observer2D) -> go.Figure:
     camera_pos = Point3D(*extract_translation(to_root))
 
     # Camera's x, y, z axis
-    basis_x = to_root * Vector3D(1, 0, 0)
-    basis_y = to_root * Vector3D(0, 1, 0)
-    basis_z = to_root * Vector3D(0, 0, 1)
+    basis_x = Vector3D(1, 0, 0).transform(to_root)
+    basis_y = Vector3D(0, 1, 0).transform(to_root)
+    basis_z = Vector3D(0, 0, 1).transform(to_root)
 
     width = 30e-2
 
