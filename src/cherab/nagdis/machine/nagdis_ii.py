@@ -7,10 +7,9 @@ from collections import defaultdict
 from plotly import graph_objects as go
 from plotly.graph_objects import Figure
 from raysect.optical import World, rotate_z
-from raysect.optical.material.absorber import AbsorbingSurface
 
 # from raysect.optical.material.lambert import Lambert
-from raysect.optical.material.material import Material
+from raysect.optical.material import AbsorbingSurface, Material
 from raysect.primitive.mesh import Mesh
 from rich.console import Console, Group
 from rich.live import Live
@@ -138,7 +137,14 @@ def load_pfc_mesh(
                     roughness = None
 
                 if roughness is not None:
-                    material = material_cls(roughness=roughness)
+                    if issubclass(material_cls, RoughSUS316L):
+                        material = material_cls(roughness=roughness)
+                    else:
+                        print(
+                            f"Warning: {material_cls.__name__} does not support roughness."
+                            " Using default roughness."
+                        )
+                        material = material_cls()
                 else:
                     material = material_cls()
 
@@ -173,7 +179,7 @@ def load_pfc_mesh(
                 _status = f"❌ ({e})"
             finally:
                 if not quiet:
-                    table.add_row(
+                    table.add_row(  # type: ignore
                         mesh_name,
                         paths_to_rsm[mesh_name],
                         material_cls.__name__,

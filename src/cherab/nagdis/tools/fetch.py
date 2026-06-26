@@ -89,4 +89,7 @@ def fetch_file(
         progressbar=True,
         timeout=5,
     )
-    return pup.fetch(name, downloader=downloader)
+    return pup.fetch(
+        name,
+        downloader=downloader,  # type: ignore[bad-argument-type]
+    )

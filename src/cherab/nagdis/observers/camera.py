@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 import plotly.graph_objects as go
 from calcam.calibration import Calibration
@@ -12,11 +14,13 @@ from raysect.core.math import (
     extract_translation,
     rotate_x,
 )
-from raysect.optical import World
-from raysect.optical.observer import Observer2D
 
 from ..tools.fetch import fetch_file
 from .thin_lens_ccd import ThinLensCCDArray
+
+if TYPE_CHECKING:
+    from raysect.optical import World
+    from raysect.optical.observer.base import Observer2D
 
 __all__ = ["load_camera", "show_camera_geometry"]
 
