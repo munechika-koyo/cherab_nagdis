@@ -207,7 +207,7 @@ class ConditionalAverage:
             ds_avg[var].attrs.update(ds[var].attrs)
 
         # Add mask variables
-        masks = [var for var in self.ds.data_vars if "mask" in var]
+        masks = [var for var in self.ds.data_vars if "mask" in str(var)]
         for mask in masks:
             ds_avg[mask] = self.ds[mask]
 
@@ -352,7 +352,7 @@ class ConditionalAverage:
             ds_avg[var].attrs.update(ds[var].attrs)
 
         # Add mask variables
-        masks = [var for var in self.ds.data_vars if "mask" in var]
+        masks = [var for var in self.ds.data_vars if "mask" in str(var)]
         for mask in masks:
             ds_avg[mask] = self.ds[mask]
 
@@ -404,7 +404,7 @@ class ConditionalAverage:
         xarray.DataArray
             :math:`t-y` contour DataArray.
         """
-        masks: list[str] = [var for var in ds.data_vars if "mask" in var]  # type: ignore
+        masks: list = [var for var in ds.data_vars if "mask" in str(var)]
 
         images = np.full((len(masks), ds["tau"].size, ds["y"].size, ds["x"].size), np.nan)
         for i_port, mask in enumerate(masks):

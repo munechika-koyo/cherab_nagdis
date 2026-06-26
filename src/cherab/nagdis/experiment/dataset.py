@@ -70,15 +70,15 @@ def create_dataset(
         if wvf_path is None:
             wvf_path = Path(askopenfilename(title="Select the .wvf file"))
         wvf_data = wvf.datafile(str(wvf_path))
-        wvf_data = wvf_data[wvf_path.stem]
+        wvf_data = wvf_data[wvf_path.stem]  # type: ignore[index]
 
-        time = wvf_data.traces["CH1"].t.ravel()
-        trigger = wvf_data.traces["CH1"].y.ravel()
-        II_gate = wvf_data.traces["CH3"].y.ravel()
-        Vf_A = wvf_data.traces["CH4"].y.ravel()
-        Vf_D = wvf_data.traces["CH8"].y.ravel()
-        V_probe = wvf_data.traces["CH9"].y.ravel()
-        I_sat = wvf_data.traces["CH10"].y.ravel() * 10
+        time = wvf_data.traces["CH1"].t.ravel()  # type: ignore[attr-defined]
+        trigger = wvf_data.traces["CH1"].y.ravel()  # type: ignore[attr-defined]
+        II_gate = wvf_data.traces["CH3"].y.ravel()  # type: ignore[attr-defined]
+        Vf_A = wvf_data.traces["CH4"].y.ravel()  # type: ignore[attr-defined]
+        Vf_D = wvf_data.traces["CH8"].y.ravel()  # type: ignore[attr-defined]
+        V_probe = wvf_data.traces["CH9"].y.ravel()  # type: ignore[attr-defined]
+        I_sat = wvf_data.traces["CH10"].y.ravel() * 10  # type: ignore[attr-defined]
 
         # Convert time variable to int64 in microseconds
         t0: int = round(time[0] * _TO_MICROSECOND)  # start time in µs
@@ -110,7 +110,7 @@ def create_dataset(
             },
             attrs={
                 "wvf_path": str(wvf_path),
-                "date": wvf_data.date,
+                "date": wvf_data.date,  # type: ignore[attr-defined]
             },
         )
         console.log(f"Loaded waveform data from {wvf_path}")

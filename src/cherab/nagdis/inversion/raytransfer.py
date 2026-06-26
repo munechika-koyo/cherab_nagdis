@@ -2,14 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Literal, overload
-
-import matplotlib.axes
-import matplotlib.figure
 import numpy as np
-from matplotlib import pyplot as plt
-from raysect.core.math import Point3D, Vector3D, rotate_vector, translate  # type: ignore
-from raysect.core.scenegraph._nodebase import _NodeBase  # type: ignore
+import ultraplot as uplt
+from raysect.core.math import Point3D, Vector3D, rotate_vector, translate
+from raysect.core.scenegraph._nodebase import _NodeBase
 
 from cherab.tools.raytransfer import RayTransferBox, RayTransferCylinder
 
@@ -221,36 +217,11 @@ def create_raytransfer_box(
     )
 
 
-@overload
-def plot_rtc_grid(
-    rtc: RayTransferCylinder,
-    is_plot_axis: Literal[False] = False,
-) -> tuple[
-    matplotlib.figure.Figure,
-    matplotlib.axes.Axes,
-]: ...
-
-
-@overload
-def plot_rtc_grid(
-    rtc: RayTransferCylinder,
-    is_plot_axis: Literal[True],
-) -> tuple[
-    matplotlib.figure.Figure,
-    tuple[matplotlib.axes.Axes, matplotlib.axes.Axes],
-]: ...
-
-
 def plot_rtc_grid(
     rtc: RayTransferCylinder,
     is_plot_axis: bool = True,
-    fig: matplotlib.figure.Figure | None = None,
-    axes: matplotlib.axes.Axes | None = None,
     **kwargs,
-) -> tuple[
-    matplotlib.figure.Figure,
-    tuple[matplotlib.axes.Axes, matplotlib.axes.Axes] | matplotlib.axes.Axes,
-]:
+) -> tuple[uplt.Figure, uplt.gridspec.GridSpec]:
     """Plot the grid of the RayTransferCylinder object.
 
     Parameters
@@ -259,21 +230,15 @@ def plot_rtc_grid(
         RayTransferCylinder object.
     is_plot_axis
         Whether to plot grids along the x and z axes, by default True.
-    fig
-        Figure object to plot the grid, by default None.
-    axes
-        Axes object to plot the grid, by default None.
     **kwargs
         Additional keyword arguments for the matplotlib plot function.
 
     Returns
     -------
-    fig : `~matplotlib.figure.Figure`
+    fig : `~ultraplot.figure.Figure`
         Figure object.
-    axes1 : `~matplotlib.axes.Axes`
-        Axes object for the cross-section grid.
-    axes2 : `~matplotlib.axes.Axes`
-        Axes object for the axial grid if `is_plot_axis` is True.
+    axs: `~ultraplot.gridspec.SubplotGrid`
+        Axes object for the cross-section grid and axial grid if `is_plot_axis` is True.
 
     Raises
     ------
@@ -284,25 +249,14 @@ def plot_rtc_grid(
         raise TypeError("rtc must be a RayTransferCylinder object.")
 
     if is_plot_axis:
-        fig, (ax1, ax2) = plt.subplots(
-            1,
-            2,
-            dpi=200,
+        fig, axs = uplt.subplots(
+            nrows=1,
+            ncols=2,
+            sharex=False,
             sharey=True,
-            gridspec_kw={"wspace": 0.01, "width_ratios": [1, 3]},
-            figsize=(10, 3),
-            layout="constrained",
         )
     else:
-        if isinstance(fig, matplotlib.figure.Figure):
-            if axes is None:
-                ax1 = fig.add_subplot(111)
-            else:
-                if not isinstance(axes, matplotlib.axes.Axes):
-                    raise TypeError("axes must be a matplotlib Axes object.")
-                ax1 = axes
-        else:
-            fig, ax1 = plt.subplots(1, 1, dpi=200, layout="constrained")
+        fig, axs = uplt.subplots()
 
     # Set plotting parameters
     kwargs.setdefault("color", "black")
@@ -329,7 +283,7 @@ def plot_rtc_grid(
         start = origin
         end = origin + (basis_x * rmax).transform(rotate_vector(ip * dp, basis_z))
 
-        ax1.plot([start.x, end.x], [start.y, end.y], **kwargs)
+        axs[0].plot([start.x, end.x], [start.y, end.y], **kwargs)
 
     # Plot the circular lines
     for ir in range(nr + 1):
@@ -338,68 +292,46 @@ def plot_rtc_grid(
         x = radius * np.cos(angles)
         y = radius * np.sin(angles)
 
-        ax1.plot(x, y, **kwargs)
+        axs[0].plot(x, y, **kwargs)
 
-    ax1.set_xlabel("$X$ [m]")
-    ax1.set_ylabel("$Y$ [m]")
-    ax1.set_title("Cross-section grid")
-    ax1.tick_params(axis="both", which="both", direction="in", top=True, right=True)
+    axs[0].format(
+        aspect="equal",
+        xlabel="$X$ [m]",
+        ylabel="$Y$ [m]",
+        title="Cross-section grid",
+    )
 
     # ============================================================================
     # Plot the axial grid in the x-z plane
     # ============================================================================
     if is_plot_axis:
         # Plot x-axis lines
-        for iz in range(nz + 1):
-            z = origin.z + iz * dz
-            ax2.plot([z, z], [-rmax + origin.x, origin.x + rmax], **kwargs)
+        for i in range(nz + 1):
+            z = origin.z + i * dz
+            axs[1].plot([z, z], [-rmax + origin.x, origin.x + rmax], **kwargs)
 
         # Plot z-axis lines
         for ir in range(2 * nr + 1):
             r = -rmax + ir * dr
-            ax2.plot([origin.z, origin.z + height], [r, r], **kwargs)
+            axs[1].plot([origin.z, origin.z + height], [r, r], **kwargs)
 
-        ax2.set_xlabel("$Z$ [m]")
-        ax2.set_title("Axial grid")
-        ax2.tick_params(axis="both", which="both", direction="in", top=True, right=True)
+        axs[1].format(
+            xlabel="$Z$ [m]",
+            title="Axial grid",
+        )
 
-        return fig, (ax1, ax2)
+    axs.format(
+        xreverse=False,
+    )
 
-    else:
-        ax1.set_aspect("equal")
-        return fig, ax1
-
-
-@overload
-def plot_rtb_grid(
-    rtb: RayTransferBox,
-    is_plot_axis: Literal[False] = False,
-) -> tuple[
-    matplotlib.figure.Figure,
-    matplotlib.axes.Axes,
-]: ...
-
-
-@overload
-def plot_rtb_grid(
-    rtb: RayTransferBox,
-    is_plot_axis: Literal[True],
-) -> tuple[
-    matplotlib.figure.Figure,
-    tuple[matplotlib.axes.Axes, matplotlib.axes.Axes],
-]: ...
+    return fig, axs
 
 
 def plot_rtb_grid(
     rtb: RayTransferBox,
     is_plot_axis: bool = True,
-    fig: matplotlib.figure.Figure | None = None,
-    axes: matplotlib.axes.Axes | None = None,
     **kwargs,
-) -> tuple[
-    matplotlib.figure.Figure,
-    tuple[matplotlib.axes.Axes, matplotlib.axes.Axes] | matplotlib.axes.Axes,
-]:
+) -> tuple[uplt.Figure, uplt.gridspec.SubplotGrid]:
     """Plot the grid of the RayTransferBox object.
 
     Parameters
@@ -408,21 +340,15 @@ def plot_rtb_grid(
         RayTransferBox object.
     is_plot_axis
         Whether to plot grids along the x and z axes, by default True.
-    fig
-        Figure object to plot the grid, by default None.
-    axes
-        Axes object to plot the grid, by default None.
     **kwargs
         Additional keyword arguments for the matplotlib plot function.
 
     Returns
     -------
-    fig : `~matplotlib.figure.Figure`
+    fig : `~ultraplot.figure.Figure`
         Figure object.
-    axes1 : `~matplotlib.axes.Axes`
-        Axes object for the cross-section grid.
-    axes2 : `~matplotlib.axes.Axes`
-        Axes object for the axial grid if `is_plot_axis` is True.
+    axs: `~ultraplot.gridspec.SubplotGrid`
+        Subplot grid object.
 
     Raises
     ------
@@ -433,25 +359,14 @@ def plot_rtb_grid(
         raise TypeError("rtb must be a RayTransferBox object.")
 
     if is_plot_axis:
-        fig, (ax1, ax2) = plt.subplots(
-            1,
-            2,
-            dpi=200,
+        fig, axs = uplt.subplots(
+            nrows=1,
+            ncols=2,
+            sharex=False,
             sharey=True,
-            gridspec_kw={"wspace": 0.01, "width_ratios": [1, 3]},
-            figsize=(10, 3),
-            layout="constrained",
         )
     else:
-        if isinstance(fig, matplotlib.figure.Figure):
-            if axes is None:
-                ax1 = fig.add_subplot(111)
-            else:
-                if not isinstance(axes, matplotlib.axes.Axes):
-                    raise TypeError("axes must be a matplotlib Axes object.")
-                ax1 = axes
-        else:
-            fig, ax1 = plt.subplots(1, 1, dpi=200, layout="constrained")
+        fig, axs = uplt.subplots()
 
     # Set plotting parameters
     kwargs.setdefault("color", "black")
@@ -476,61 +391,53 @@ def plot_rtb_grid(
         start = origin + (basis_y * iy * dy)
         end = start + (basis_x * nx * dx)
 
-        ax1.plot([start.x, end.x], [start.y, end.y], **kwargs)
+        axs[0].plot([start.x, end.x], [start.y, end.y], **kwargs)
 
     # Plot the y lines
     for ix in range(nx + 1):
         start = origin + (basis_x * ix * dx)
         end = start + (basis_y * ny * dy)
 
-        ax1.plot([start.x, end.x], [start.y, end.y], **kwargs)
+        axs[0].plot([start.x, end.x], [start.y, end.y], **kwargs)
 
     # Plot the limit circle line
     radius = nx * dx / 2
     thetas = np.linspace(0, 2 * np.pi, 100)
-    ax1.plot(
+    axs[0].plot(
         radius * np.cos(thetas),
         radius * np.sin(thetas),
         **kwargs,
     )
-    ax1.set_xlabel("$X$ [m]")
-    ax1.set_ylabel("$Y$ [m]")
-    ax1.set_title("Cross-section grid")
-    ax1.tick_params(axis="both", which="both", direction="in", top=True, right=True)
+    axs[0].format(
+        aspect="equal",
+        xlabel="$X$ [m]",
+        ylabel="$Y$ [m]",
+        title="Cross-section grid",
+    )
 
     # ============================================================================
     # Plot the axial grid in the x-z plane
     # ============================================================================
     if is_plot_axis:
         # Plot x-axis lines
-        for iz in range(nz + 1):
-            start = origin + (basis_z * iz * dz)
+        for i in range(nz + 1):
+            start = origin + (basis_z * i * dz)
             end = start + (basis_x * nx * dx)
-            ax2.plot([start.z, end.z], [start.x, end.x], **kwargs)
+            axs[1].plot([start.z, end.z], [start.x, end.x], **kwargs)
 
         # Plot z-axis lines
         for ix in range(nx + 1):
             start = origin + (basis_x * ix * dx)
             end = start + (basis_z * nz * dz)
-            ax2.plot([start.z, end.z], [start.x, end.x], **kwargs)
+            axs[1].plot([start.z, end.z], [start.x, end.x], **kwargs)
 
-        ax2.set_xlabel("$Z$ [m]")
-        ax2.set_title("Axial grid")
-        ax2.tick_params(axis="both", which="both", direction="in", top=True, right=True)
+        axs[1].format(
+            xlabel="$Z$ [m]",
+            title="Axial grid",
+        )
 
-        return fig, (ax1, ax2)
+    axs.format(
+        xreverse=False,
+    )
 
-    else:
-        ax1.set_aspect("equal")
-        return fig, ax1
-
-
-if __name__ == "__main__":
-    from raysect.optical import World
-
-    world = World()
-    rtc = create_raytransfer_cylinder(world)
-    rtb = create_raytransfer_box(world)
-    fig, _ = plot_rtc_grid(rtc)
-    fig, _ = plot_rtb_grid(rtb)
-    plt.show()
+    return fig, axs
