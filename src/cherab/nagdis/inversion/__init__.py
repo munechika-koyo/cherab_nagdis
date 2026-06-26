@@ -1,5 +1,4 @@
 """Subpackage related to the tomographic inversion."""
 
-from .mlem import MLEM
-
-__all__ = ["MLEM"]
+from . import raytransfer as raytransfer
+from .raytransfer import *  # noqa: F403

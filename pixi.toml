@@ -45,6 +45,7 @@ ffmpeg = "*"
 # ---------------------------------
 [dependencies]
 cherab-nagdis = { path = "." }
+cherab-inversion = "*"
 ipython = "*"
 
 # Type stubs
