@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "cherab-nagdis"
 description = "Cherab for NAGDIS-II"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE"]
 keywords = ["cherab", "nagdis", "fusion", "plasma", "inversion"]
@@ -14,7 +14,6 @@ authors = [{ name = "Koyo Munechika", email = "munechika.koyo@gmail.com" }]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
