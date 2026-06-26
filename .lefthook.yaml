@@ -70,11 +70,11 @@ pre-commit:
       glob: "*.ipynb"
       stage_fixed: true
       skip:
-        - run: test ${CI} -eq 1
+        - run: test ${CI:-false} = true
       run: pixi {run} nbstripout {staged_files}
 
     - name: nbstripout check
       glob: "*.ipynb"
       only:
-        - run: test ${CI} -eq 1
+        - run: test ${CI:-false} = true
       run: pixi {run} nbstripout --verify {staged_files}
