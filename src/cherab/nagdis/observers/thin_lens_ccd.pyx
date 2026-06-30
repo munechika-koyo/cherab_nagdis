@@ -9,12 +9,15 @@ from raysect.optical.observer.pipeline import RGBPipeline2D
 from raysect.optical.observer.sampler2d import FullFrameSampler2D
 
 cimport cython
+cimport numpy as np
 from libc.math cimport M_PI
 from raysect.core.math.sampler cimport DiskSampler3D, RectangleSampler3D
 from raysect.optical cimport AffineMatrix3D, Point3D, Ray, Vector3D, translate
 from raysect.optical.observer.base cimport Observer2D
 
 __all__ = ["ThinLensCCDArray"]
+
+np.import_array()
 
 
 cdef class ThinLensCCDArray(Observer2D):

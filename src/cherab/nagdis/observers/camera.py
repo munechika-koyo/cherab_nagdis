@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 import plotly.graph_objects as go
 from calcam.calibration import Calibration
@@ -12,31 +14,33 @@ from raysect.core.math import (
     extract_translation,
     rotate_x,
 )
-from raysect.optical import World
-from raysect.optical.observer import Observer2D
 
 from ..tools.fetch import fetch_file
 from .thin_lens_ccd import ThinLensCCDArray
+
+if TYPE_CHECKING:
+    from raysect.optical import World
+    from raysect.optical.observer.base import Observer2D
 
 __all__ = ["load_camera", "show_camera_geometry"]
 
 
 def load_camera(
     parent: World,
-    path_to_calibration: str = "20240705_mod.ccc",
+    path_to_calibration: str = "camera_carib.ccc",
     **kwargs,
 ) -> ThinLensCCDArray:
-    """Loading fast lens camera configured with calcam calibration data.
+    """Load fast lens camera configured with calcam calibration data.
 
     Default camera extrinsic matrix (rotation matrix and translation vector) is loaded from
     `calcam` calibration data.
 
     Parameters
     ----------
-    parent : `~raysect.optical.scenegraph.world.World`
+    parent
         Raysect world object to which the camera is attached.
-    path_to_calibration : str, optional
-        Path to `calcam` calibration data, by default "20240705_mod.ccc".
+    path_to_calibration
+        Path to `calcam` calibration data, by default "camera_carib.ccc".
         This file is fetched by `.fetch_file` function.
     **kwargs
         Additional keyword arguments to pass to `.fetch_file` function.
@@ -48,13 +52,11 @@ def load_camera(
 
     Examples
     --------
-    .. prompt:: python >>> auto
-
-        >>> from raysect.optical import World
-        >>> from cherab.nagdis.observers import load_camera
-        >>>
-        >>> world = World()
-        >>> camera = load_camera(world)
+    >>> from raysect.optical import World
+    >>> from cherab.nagdis.observers import load_camera
+    >>>
+    >>> world = World()
+    >>> camera = load_camera(world)
     """
     try:
         # Load calibration data from calcam file
@@ -77,7 +79,7 @@ def load_camera(
         )
 
         # === generate ThinLensCCDArray object ===
-        pixel_size = calib.pixel_size
+        pixel_size: float = calib.pixel_size  # type: ignore[bad-assignment]
         camera = ThinLensCCDArray(
             pixels=(1280, 896),
             width=pixel_size * 1280,
@@ -88,7 +90,7 @@ def load_camera(
             parent=parent,
             pipelines=None,
             transform=rotate_x(-90)
-            * transform,  # NOTE: rotate_x(-90) is mondatory for +Y up system
+            * transform,  # NOTE: rotate_x(-90) is mandatory for +Y up system
             name="Fast-visible camera",
         )
     except Exception as e:
@@ -102,9 +104,9 @@ def show_camera_geometry(fig: go.Figure, camera: Observer2D) -> go.Figure:
 
     Parameters
     ----------
-    fig : `~plotly.graph_objects.Figure`
+    fig
         Plotly figure object.
-    camera : `~raysect.optical.observer.Observer2D`
+    camera
         Observer2D object.
 
     Returns
@@ -118,9 +120,9 @@ def show_camera_geometry(fig: go.Figure, camera: Observer2D) -> go.Figure:
     camera_pos = Point3D(*extract_translation(to_root))
 
     # Camera's x, y, z axis
-    basis_x = to_root * Vector3D(1, 0, 0)
-    basis_y = to_root * Vector3D(0, 1, 0)
-    basis_z = to_root * Vector3D(0, 0, 1)
+    basis_x = Vector3D(1, 0, 0).transform(to_root)
+    basis_y = Vector3D(0, 1, 0).transform(to_root)
+    basis_z = Vector3D(0, 0, 1).transform(to_root)
 
     width = 30e-2
 

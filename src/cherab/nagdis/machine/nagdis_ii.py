@@ -7,10 +7,9 @@ from collections import defaultdict
 from plotly import graph_objects as go
 from plotly.graph_objects import Figure
 from raysect.optical import World, rotate_z
-from raysect.optical.material.absorber import AbsorbingSurface
 
 # from raysect.optical.material.lambert import Lambert
-from raysect.optical.material.material import Material
+from raysect.optical.material import AbsorbingSurface, Material
 from raysect.primitive.mesh import Mesh
 from rich.console import Console, Group
 from rich.live import Live
@@ -27,7 +26,7 @@ __all__ = ["load_pfc_mesh", "show_PFCs_3D"]
 SUS_ROUGHNESS = 0.0125
 
 # List of Plasma Facing Components (filename is "**.rsm")
-COMPONENTS: dict[str, tuple[str, Material, float | None]] = {
+COMPONENTS: dict[str, tuple[str, type[Material], float | None]] = {
     # name: (filename, material class, roughness)
     "Vacuum Vessel Upper": ("vessel_upper", RoughSUS316L, SUS_ROUGHNESS),
     "Vacuum Vessel Lower": ("vessel_lower", RoughSUS316L, SUS_ROUGHNESS),
@@ -45,7 +44,7 @@ ANG_OFFSET: dict[str, float] = defaultdict(lambda: 0.0)
 
 def load_pfc_mesh(
     world: World,
-    custom_components: dict[str, tuple[str, Material, float | None]] | None = None,
+    custom_components: dict[str, tuple[str, type[Material], float | None]] | None = None,
     reflection: bool = True,
     is_fine_mesh: bool = True,
     quiet: bool = False,
@@ -58,20 +57,20 @@ def load_pfc_mesh(
 
     Parameters
     ----------
-    world : `~raysect.optical.world.World`
+    world
         The world scenegraph to which the meshes will be added.
-    custom_components : dict[str, tuple[str, Material, float | None]], optional
+    custom_components
         Custom components to load, by default None.
         The structure of the dictionary is as follows:
         ``{"Component Name": ("path", Material, roughness)}``.
         If the custom component is given, it is merged with the default components.
-    reflection : bool, optional
+    reflection
         Whether or not to consider reflection light, by default True.
         If ``False``, all of meshes' material are replaced to
         `~raysect.optical.material.absorber.AbsorbingSurface`.
-    is_fine_mesh : bool, optional
+    is_fine_mesh
         Whether or not to use fine mesh for the vacuum vessel, by default True.
-    quiet : bool, optional
+    quiet
         If ``True``, it suppresses the progress table, by default False.
     **kwargs
         Keyword arguments to pass to `.fetch_file`.
@@ -83,7 +82,7 @@ def load_pfc_mesh(
 
     Examples
     --------
-    .. prompt:: python
+    .. code-block:: python
 
         from raysect.optical import World
         from cherab.nagdis.machine import load_pfc_mesh
@@ -138,7 +137,14 @@ def load_pfc_mesh(
                     roughness = None
 
                 if roughness is not None:
-                    material = material_cls(roughness=roughness)
+                    if issubclass(material_cls, RoughSUS316L):
+                        material = material_cls(roughness=roughness)
+                    else:
+                        print(
+                            f"Warning: {material_cls.__name__} does not support roughness."
+                            " Using default roughness."
+                        )
+                        material = material_cls()
                 else:
                     material = material_cls()
 
@@ -173,7 +179,7 @@ def load_pfc_mesh(
                 _status = f"❌ ({e})"
             finally:
                 if not quiet:
-                    table.add_row(
+                    table.add_row(  # type: ignore
                         mesh_name,
                         paths_to_rsm[mesh_name],
                         material_cls.__name__,
@@ -195,9 +201,9 @@ def show_PFCs_3D(fig: Figure | None = None, fig_size: tuple[int, int] = (700, 50
 
     Parameters
     ----------
-    fig : `~plotly.graph_objects.Figure`, optional
+    fig
         Plotly Figure object, by default `~plotly.graph_objects.Figure`.
-    fig_size : tuple[int, int], optional
+    fig_size
         Figure size, by default (700, 500) pixel.
 
     Returns
@@ -207,7 +213,7 @@ def show_PFCs_3D(fig: Figure | None = None, fig_size: tuple[int, int] = (700, 50
 
     Examples
     --------
-    .. prompt:: python
+    .. code-block:: python
 
         fig = show_PFCs_3D(fig_size=(700, 500))
         fig.show()

@@ -1,5 +1,5 @@
 #!/usr/bin/env -S pixi run python
-"""This script is used to generate a Ray-Transfer Matrix (RTM)."""
+"""Generate a Ray-Transfer Matrix (RTM)."""
 
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -9,7 +9,7 @@ import numpy as np
 import xarray as xr
 from raysect.core.math import Point3D, rotate_z
 from raysect.optical import Node, World
-from raysect.optical.observer import FullFrameSampler2D  # type: ignore
+from raysect.optical.observer import FullFrameSampler2D
 from rich.console import Console, Group
 from rich.live import Live
 from rich.panel import Panel

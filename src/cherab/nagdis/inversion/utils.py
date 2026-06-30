@@ -23,7 +23,7 @@ def get_voxel_centers(rto: RayTransferObject) -> np.ndarray:
 
     Parameters
     ----------
-    rto : RayTransferObject
+    rto
         The RayTransferObject for which to get the voxel centers.
 
     Returns
@@ -32,6 +32,11 @@ def get_voxel_centers(rto: RayTransferObject) -> np.ndarray:
         The voxel center coordinates.
         If the `RayTransferObject` is a `RayTransferBox`, the shape of the array is `(nx, ny, nz, 3)`.
         If the `RayTransferObject` is a `RayTransferCylinder`, the shape of the array is `(nr, nphi, nz, 3)`.
+
+    Raises
+    ------
+    TypeError
+        If the provided `rto` is not a supported `RayTransferObject` type.
     """
     if isinstance(rto, RayTransferObject):
         if isinstance(rto, RayTransferBox):
