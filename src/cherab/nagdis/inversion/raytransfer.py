@@ -14,6 +14,7 @@ __all__ = [
     "create_raytransfer_box",
     "plot_rtc_grid",
     "plot_rtb_grid",
+    "plot_rtb_cross_section_grid",
 ]
 
 # Constants
@@ -373,6 +374,8 @@ def plot_rtb_grid(
     kwargs.setdefault("linestyle", "-")
     kwargs.setdefault("linewidth", 0.5)
 
+    ax = plot_rtb_cross_section_grid(rtb, axs[0], **kwargs)
+
     # Get the values for the grid
     nx, ny, nz = rtb.material.grid_shape
     dx, dy, dz = rtb.material.grid_steps
@@ -380,35 +383,17 @@ def plot_rtb_grid(
 
     origin = ORIGIN.transform(to_root)
     basis_x = X_AXIS.transform(to_root)
-    basis_y = Y_AXIS.transform(to_root)
     basis_z = Z_AXIS.transform(to_root)
-
-    # ============================================================================
-    # Plot the cross-section grid in the x-y plane
-    # ============================================================================
-    # Plot the x lines
-    for iy in range(ny + 1):
-        start = origin + (basis_y * iy * dy)
-        end = start + (basis_x * nx * dx)
-
-        axs[0].plot([start.x, end.x], [start.y, end.y], **kwargs)
-
-    # Plot the y lines
-    for ix in range(nx + 1):
-        start = origin + (basis_x * ix * dx)
-        end = start + (basis_y * ny * dy)
-
-        axs[0].plot([start.x, end.x], [start.y, end.y], **kwargs)
 
     # Plot the limit circle line
     radius = nx * dx / 2
     thetas = np.linspace(0, 2 * np.pi, 100)
-    axs[0].plot(
+    ax.plot(
         radius * np.cos(thetas),
         radius * np.sin(thetas),
         **kwargs,
     )
-    axs[0].format(
+    ax.format(
         aspect="equal",
         xlabel="$X$ [m]",
         ylabel="$Y$ [m]",
@@ -441,3 +426,60 @@ def plot_rtb_grid(
     )
 
     return fig, axs
+
+
+def plot_rtb_cross_section_grid(
+    rtb: RayTransferBox,
+    ax,
+    **kwargs,
+) -> uplt.axes.Axes:
+    """Plot only the x-y cross-section grid lines of a RayTransferBox on a given axis.
+
+    Parameters
+    ----------
+    rtb
+        RayTransferBox object.
+    ax
+        Axis object to draw the cross-section grid onto.
+    **kwargs
+        Additional keyword arguments for the matplotlib plot function.
+
+    Returns
+    -------
+    `~ultraplot.axes.Axes`
+        Axis object with cross-section grid lines.
+
+    Raises
+    ------
+    TypeError
+        If `rtb` is not a RayTransferBox object.
+    """
+    if not isinstance(rtb, RayTransferBox):
+        raise TypeError("rtb must be a RayTransferBox object.")
+
+    # Set default plotting parameters
+    kwargs.setdefault("color", "black")
+    kwargs.setdefault("linestyle", "-")
+    kwargs.setdefault("linewidth", 0.5)
+
+    nx, ny, _ = rtb.material.grid_shape
+    dx, dy, _ = rtb.material.grid_steps
+    to_root = rtb._primitive.to_root()
+
+    origin = ORIGIN.transform(to_root)
+    basis_x = X_AXIS.transform(to_root)
+    basis_y = Y_AXIS.transform(to_root)
+
+    # Plot the x lines
+    for iy in range(ny + 1):
+        start = origin + (basis_y * iy * dy)
+        end = start + (basis_x * nx * dx)
+        ax.plot([start.x, end.x], [start.y, end.y], **kwargs)
+
+    # Plot the y lines
+    for ix in range(nx + 1):
+        start = origin + (basis_x * ix * dx)
+        end = start + (basis_y * ny * dy)
+        ax.plot([start.x, end.x], [start.y, end.y], **kwargs)
+
+    return ax
