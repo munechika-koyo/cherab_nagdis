@@ -52,7 +52,6 @@ ipython = "*"
 scipy-stubs = "*"
 cherab-stubs = { git = "https://github.com/munechika-koyo/cherab-stubs.git" }
 
-
 # For JupyterLab and interactive plots
 ipykernel = "*"
 ipywidgets = "*"
