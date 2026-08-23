@@ -52,7 +52,7 @@ origins = camera.pixel_origins[:, trim]
 directions = camera.pixel_directions[:, trim]
 
 
-def ray_paths(ix: int, iy: int) -> list[Point3D]:
+def ray_paths(ix, iy) -> list[Point3D]:
     """Trace a ray from pixel (ix, iy) and return the origin and hit point.
 
     Parameters

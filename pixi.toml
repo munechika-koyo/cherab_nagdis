@@ -1,5 +1,5 @@
 [workspace]
-channels = ["conda-forge"]
+channels = ["conda-forge", "https://prefix.dev/koyo-forge"]
 platforms = ["linux-64", "osx-arm64", "osx-64"]
 preview = ["pixi-build"]
 
@@ -50,7 +50,7 @@ ipython = "*"
 
 # Type stubs
 scipy-stubs = "*"
-cherab-stubs = { git = "https://github.com/munechika-koyo/cherab-stubs.git" }
+cherab-stubs = "*"
 
 # For JupyterLab and interactive plots
 ipykernel = "*"
