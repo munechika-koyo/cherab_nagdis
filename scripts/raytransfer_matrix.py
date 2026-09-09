@@ -268,8 +268,8 @@ with Live(progress_panel):
             # render
             camera.observe()
 
-            # flip the matrix to match the camera mask
-            _rtm = np.transpose(rtp.matrix, (1, 0, 2))  # type: ignore  (x, y, bins) -> (y, x, bins)
+            # flip the matrix to match the camera mask (x, y, bins) -> (y, x, bins)
+            _rtm = np.transpose(rtp.matrix, (1, 0, 2))
 
             # Assign the ray-transfer matrix to the temporary storage
             rtm[i_angle] = _rtm[camera_mask, :] / (4.0 * np.pi)  # [m^3 sr] -> [m^3]
