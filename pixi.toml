@@ -100,9 +100,7 @@ SSH_RAYTRACE_USERNAME = "koyo"
 [feature.test.dependencies]
 pytest = "*"
 pytest-cov = "*"
-
-[feature.test.pypi-dependencies]
-pytest-github-report = "*"
+pytest-github-actions-annotate-failures = "*"
 
 [feature.test.tasks]
 test = { cmd = ["pytest", "tests"], description = "🧪 Run the tests" }
