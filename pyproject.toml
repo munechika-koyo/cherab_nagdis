@@ -1,7 +1,3 @@
-[build-system]
-requires = ["hatch-cython>=0.6.0", "hatch-vcs", "cherab>=1.5,<2.0"]
-build-backend = "hatchling.build"
-
 [project]
 name = "cherab-nagdis"
 description = "Cherab for NAGDIS-II"
@@ -9,8 +5,10 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE"]
-keywords = ["cherab", "nagdis", "fusion", "plasma", "inversion"]
-authors = [{ name = "Koyo Munechika", email = "munechika.koyo@gmail.com" }]
+authors = [
+  { name = "Koyo Munechika", email = "munechika.koyo@gmail.com" },
+]
+keywords = ["cherab", "fusion", "inversion", "nagdis", "plasma"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
@@ -21,33 +19,52 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
 ]
 dependencies = [
-  "numpy",
-  "matplotlib",
-  "scipy",
-  "plotly",
-  "cherab>=1.5,<2.0",
   "calcam",
-  "pooch",
+  "cherab>=1.5,<2.0",
+  "matplotlib",
+  "numpy",
   "paramiko",
-  "tqdm",
+  "plotly",
+  "pooch",
   "rich",
+  "scipy",
+  "tqdm",
 ]
 dynamic = ["version"]
 
 [project.urls]
 repository = "https://github.com/munechika-koyo/cherab_nagdis"
 
-# ----------------------
-# === Version config ===
-# ----------------------
+[build-system]
+requires = ["cherab>=1.5,<2.0", "hatch-cython>=0.6.0", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.cibuildwheel]
+skip = "pp* *_ppc64le *_i686 *_s390x *-musllinux* cp313* cp314* cp315*"
+build-frontend = "build[uv]"
+test-requires = ["pytest", "pytest-cov"]
+test-command = "pytest {project}/tests"
+
+[tool.coverage.run]
+source_pkgs = ["cherab.nagdis"]
+branch = true
+parallel = true
+
+[tool.coverage.paths]
+test = ["src/test", "*/test/src/test"]
+tests = ["tests", "*/test/tests"]
+
+[tool.coverage.report]
+exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
+
+[tool.cython-lint]
+max-line-length = 120
+
 [tool.hatch.version]
 source = "vcs"
 
 [tool.hatch.metadata.hooks.vcs]
 
-# ----------------------------
-# === Build/Package config ===
-# ----------------------------
 [tool.hatch.build.targets.wheel]
 packages = ["src/cherab"]
 artifacts = ["*.so", "*.dll", "*.dylib"]
@@ -61,62 +78,48 @@ include_numpy = true
 src = "cherab"
 compile_args = ["-O3"]
 compile_py = false
+env = [
+  { env = "LDFLAGS", arg = "-headerpad_max_install_names", platforms = [
+    "darwin",
+  ], arch = [
+    "x86_64",
+  ], merges = true },
+  { env = "CYTHON_FORCE_REGEN", arg = "1" },
+]
+define_macros = [["NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"]]
+files = { targets = ["**/*.pyx"] }
 
-[tool.hatch.build.targets.wheel.hooks.cython.options.files]
-targets = ["**/*.pyx"]
-
-[tool.cibuildwheel]
-skip = "pp* *_ppc64le *_i686 *_s390x *-musllinux* cp313* cp314* cp315*"
-build-frontend = "build[uv]"
-test-requires = ["pytest", "pytest-cov"]
-test-command = "pytest {project}/tests"
-
-# -----------------------
-# === Cov/Test config ===
-# -----------------------
-[tool.coverage.run]
-source_pkgs = ["cherab.nagdis"]
-branch = true
-parallel = true
-
-[tool.coverage.paths]
-test = ["src/test", "*/test/src/test"]
-tests = ["tests", "*/test/tests"]
-
-[tool.coverage.report]
-exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
+[tool.pyrefly]
+project-includes = ["src"]
 
 [tool.pytest.ini_options]
-minversion = "6.0"
 addopts = "--cov=cherab_nagdis --cov-report term-missing --no-cov-on-fail"
+minversion = "6.0"
 
-# ------------------------------
-# === Lint / Format settings ===
-# ------------------------------
 [tool.ruff]
 line-length = 100
 
 [tool.ruff.lint]
 select = [
-  "E",   # pycodestyle
-  "B",   # flake8-bugbear
-  "F",   # pyflakes
-  "I",   # isort (import order)
-  "N",   # pep8-naming
-  "W",   # Warning
+  "E",  # pycodestyle
+  "B",  # flake8-bugbear
+  "F",  # pyflakes
+  "I",  # isort (import order)
+  "N",  # pep8-naming
+  "W",  # Warning
   "UP",  # pyupgrade
-  "NPY", # numpy specific rules
-  "D",   # pydocstyle
-  "DOC", # pydoclint
+  "NPY",  # numpy specific rules
+  "D",  # pydocstyle
+  "DOC",  # pydoclint
 ]
 preview = true
 ignore = [
   # Recommended ignores by ruff when using formatter
-  "E501", # line too long
-  "N802", # function name should be lowercase
-  "N803", # argument name should be lowercase
-  "N806", # variable in function should be lowercase
-  "D107", # missing docstring in __init__
+  "E501",  # line too long
+  "N802",  # function name should be lowercase
+  "N803",  # argument name should be lowercase
+  "N806",  # variable in function should be lowercase
+  "D107",  # missing docstring in __init__
 ]
 
 [tool.ruff.lint.isort]
@@ -127,8 +130,8 @@ known-first-party = ["cherab"]
   "W292",
   "D",
   "DOC",
-] # no newline at end of file and skip docstring checks
-"tests/**" = ["D", "DOC"] # skip docstring checks in tests
+]  # no newline at end of file and skip docstring checks
+"tests/**" = ["D", "DOC"]  # skip docstring checks in tests
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
@@ -136,11 +139,14 @@ convention = "numpy"
 [tool.ruff.format]
 docstring-code-format = true
 
-[tool.cython-lint]
-max-line-length = 120
+[tool.tombi]
+toml-version = "v1.1.0"
 
-# ------------------------------
-# === Type checking settings ===
-# ------------------------------
-[tool.pyrefly]
-project-includes = ["src"]
+[tool.typos.files]
+extend-exclude = [".git/", ".pixi/", "notebooks/"]
+ignore-hidden = false
+
+[tool.typos.default.extend-words]
+iy = "iy"
+rto = "rto"
+emiss = "emiss"

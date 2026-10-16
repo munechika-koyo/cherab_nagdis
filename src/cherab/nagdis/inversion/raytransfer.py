@@ -222,7 +222,7 @@ def plot_rtc_grid(
     rtc: RayTransferCylinder,
     is_plot_axis: bool = True,
     **kwargs,
-) -> tuple[uplt.Figure, uplt.gridspec.GridSpec]:
+) -> tuple[uplt.Figure, uplt.gridspec.SubplotGrid]:
     """Plot the grid of the RayTransferCylinder object.
 
     Parameters

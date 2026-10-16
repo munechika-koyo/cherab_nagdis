@@ -12,6 +12,9 @@ author = "CHERAB Team"
 copyright = f"2023-{date.today().year}, {author}"
 version_obj = parse(__version__)
 release = version_obj.public
+gh_user_repo = "munechika-koyo/cherab_nagdis"
+repository_main_branch = "main"
+repository_url = f"https://github.com/{gh_user_repo}"
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -22,7 +25,6 @@ extensions = [
     "sphinx.ext.todo",
     "sphinx.ext.napoleon",
     "sphinx_api_relink",
-    "sphinx_copybutton",
     "sphinx_codeautolink",
     "sphinx_design",
     "sphinx_github_style",
@@ -55,11 +57,6 @@ napoleon_use_rtype = False
 
 # todo config
 todo_include_todos = True
-
-# Strip prompt text when copying code blocks with copy button
-copybutton_exclude = ".linenos, .gp"
-copybutton_prompt_text = r">>> |\.\.\. |\$ "
-copybutton_prompt_is_regexp = True
 
 exclude_patterns = [
     "_build",
@@ -100,9 +97,9 @@ myst_url_schemes = {
 html_theme = "sphinx_immaterial"
 html_title = f"{project} v{release}"
 html_theme_options = {
-    "repo_url": "https://github.com/munechika-koyo/cherab_nagdis",
-    "repo_name": "CHERAB-NAGDIS",
-    "edit_uri": "blob/master/docs/source",
+    "repo_url": repository_url,
+    "repo_name": gh_user_repo,
+    "edit_uri": f"blob/{repository_main_branch}/docs/source",
     "icon": {
         "repo": "fontawesome/brands/github",
     },
@@ -123,7 +120,7 @@ html_theme_options = {
         "toc.follow",
         "toc.sticky",
         "content.tabs.link",
-        # "content.code.copy",
+        "content.code.copy",
         # "content.action.edit",
         # "content.action.view",
         "content.tooltips",
@@ -177,21 +174,23 @@ intersphinx_mapping = {
 intersphinx_timeout = 10
 
 # -- Sphinx GitHub Style configuration ----------------------------------------
-linkcode_blob = "main" if version_obj.is_devrelease else f"v{version_obj.public}"
-linkcode_url = "https://github.com/munechika-koyo/cherab_nagdis"
+linkcode_blob = repository_main_branch if version_obj.is_devrelease else f"v{release}"
+linkcode_url = repository_url
 linkcode_link_text = "Source"
 
 # -- NBSphinx configuration ---------------------------------------------------
 # nbsphinx_execute = "never"
-nbsphinx_prolog = r"""
+_nbsphinx_prolog_template = r"""
 {% set docname = 'docs/' + env.doc2path(env.docname, base=None)|string %}
 
 .. raw:: html
 
     <div class="admonition note">
       This page was generated from
-      <a class="reference external" href="https://github.com/munechika-koyo/cherab_nagdis/blob/{{ env.config.linkcode_blob|e }}/{{ docname|e }}">{{ docname|e }}</a>.
-      <br />
+      <a class="reference external" href="__REPOSITORY_URL__/blob/{{ env.config.linkcode_blob|e }}/{{ docname|e }}">{{ docname|e }}</a>.
+      <br>
+      Interactive online version:
+      <span style="white-space: nowrap;"><a href="https://mybinder.org/v2/gh/__GH_USER_REPO__/{{ env.config.linkcode_blob|e }}?filepath={{ docname|e }}"><img alt="Binder badge" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>.</span>
       <a href="{{ env.docname.split('/')|last|e + '.ipynb' }}" class="reference download internal" download>Download notebook</a>.
       <script>
         if (document.location.host) {
@@ -216,3 +215,5 @@ nbsphinx_prolog = r"""
     \textcolor{gray}{The following section was generated from
     \sphinxcode{\sphinxupquote{\strut {{ docname | escape_latex }}}} \dotfill}}
 """
+nbsphinx_prolog = _nbsphinx_prolog_template.replace("__REPOSITORY_URL__", repository_url)
+nbsphinx_prolog = nbsphinx_prolog.replace("__GH_USER_REPO__", gh_user_repo)

@@ -53,7 +53,7 @@ To run the tests, you can do so with:
 pixi run test
 ```
 
-Then, you can choose the environment you want to test against, e.g., `test` for Python 3.13 (`test-py313` is an alias for this).
+Then, you can choose the environment you want to test against, e.g., `test` for the latest Python.
 
 Also, it is possible to choose specific test environments first:
 

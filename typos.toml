@@ -1,8 +1,0 @@
-[files]
-extend-exclude = [".git/", ".pixi/", "notebooks/"]
-ignore-hidden = false
-
-[default.extend-words]
-iy = "iy"
-rto = "rto"
-emiss = "emiss"
