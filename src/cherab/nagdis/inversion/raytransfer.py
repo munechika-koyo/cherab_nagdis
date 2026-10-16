@@ -332,7 +332,7 @@ def plot_rtb_grid(
     rtb: RayTransferBox,
     is_plot_axis: bool = True,
     **kwargs,
-) -> tuple[uplt.Figure, uplt.gridspec.SubplotGrid]:
+) -> tuple[uplt.Figure, uplt.gridspec.GridSpec]:
     """Plot the grid of the RayTransferBox object.
 
     Parameters
@@ -348,7 +348,7 @@ def plot_rtb_grid(
     -------
     fig : `~ultraplot.figure.Figure`
         Figure object.
-    axs: `~ultraplot.gridspec.SubplotGrid`
+    axs: `~ultraplot.gridspec.GridSpec`
         Subplot grid object.
 
     Raises
